@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+class RegisterForm extends StatefulWidget {
+  const RegisterForm({super.key});
 
   @override
-  State<LoginForm> createState() => _LoginFormState();
+  State<RegisterForm> createState() => _RegisterFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _RegisterFormState extends State<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
+      final confirmPassword = _confirmPasswordController.text.trim();
 
       print("Email: $email");
       print("Password: $password");
@@ -81,6 +83,26 @@ class _LoginFormState extends State<LoginForm> {
                         return null;
                       },
                     ),
+                    const SizedBox(height: 20),
+
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: true, // Hides the password input
+                      decoration: InputDecoration(
+                        hintText: "Confirm your password",
+                        labelText: "Confirm Password",
+                        prefixIcon: const Icon(
+                          Icons.lock_outline,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      validator: (String? value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please confirm your password";
+                        }
+                        return null;
+                      },
+                    ),
                     const SizedBox(height: 60),
                     // ElevatedButton is used to submit the form
                     TextButton(
@@ -93,7 +115,7 @@ class _LoginFormState extends State<LoginForm> {
                           vertical: 15,
                         ),
                       ),
-                      child: Text("Login"),
+                      child: Text("Register"),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -101,17 +123,14 @@ class _LoginFormState extends State<LoginForm> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text("Don't have an account?"),
+                          const Text("Have an account?"),
                           const SizedBox(width: 5),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/register',
-                              );
+                              Navigator.pushReplacementNamed(context, '/');
                             },
                             child: const Text(
-                              "Register",
+                              "Login",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
