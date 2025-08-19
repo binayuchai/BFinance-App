@@ -1,3 +1,4 @@
+import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/features/auth/view/register.dart';
 import 'package:bfinance/features/auth/view/login.dart';
@@ -16,7 +17,8 @@ class MyApp extends StatelessWidget {
       title: 'BFinance Manager',
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginScreen(),
+        // '/': (context) => const LoginScreen(),
+        '/': (context) => const DashboardWidget(),
         '/register': (context) => const RegisterScreen(),
       },
     );
