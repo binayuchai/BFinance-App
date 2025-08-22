@@ -1,0 +1,63 @@
+import 'package:bfinance/features/dashboard/view/dashboard.dart';
+import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
+import 'package:bfinance/features/dashboard/view/widgets/transaction_list.dart';
+import 'package:flutter/material.dart';
+
+class BottomNav extends StatefulWidget {
+  const BottomNav({super.key});
+
+  @override
+  State<BottomNav> createState() => _BottomNavState();
+}
+
+class _BottomNavState extends State<BottomNav> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    const DashboardWidget(),
+    const Transaction(),
+
+    const Center(child: Text("Analytics Page")), // Placeholder for Analytics
+
+    const Center(child: Text("Category")),
+    const Settings(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: "Transactions",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics),
+            label: "Analytics",
+          ),
+
+          BottomNavigationBarItem(
+            icon: Icon(Icons.category),
+            label: "Category",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Settings",
+          ),
+        ],
+      ),
+    );
+  }
+}

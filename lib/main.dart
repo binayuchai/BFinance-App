@@ -1,4 +1,5 @@
 import 'package:bfinance/features/dashboard/view/dashboard.dart';
+import 'package:bfinance/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/features/auth/view/register.dart';
 import 'package:bfinance/features/auth/view/login.dart';
@@ -15,12 +16,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BFinance Manager',
-      initialRoute: '/',
-      routes: {
-        // '/': (context) => const LoginScreen(),
-        '/': (context) => const DashboardWidget(),
-        '/register': (context) => const RegisterScreen(),
-      },
+      initialRoute: '/home',
+      routes: AppRoutes.routes,
     );
   }
 }
