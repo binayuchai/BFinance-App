@@ -1,6 +1,7 @@
+import 'package:bfinance/features/category/category.dart';
 import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
-import 'package:bfinance/features/dashboard/view/widgets/transaction_list.dart';
+import 'package:bfinance/features/dashboard/view/widgets/transaction.dart';
 import 'package:flutter/material.dart';
 
 class BottomNav extends StatefulWidget {
@@ -15,11 +16,11 @@ class _BottomNavState extends State<BottomNav> {
 
   final List<Widget> _pages = [
     const DashboardWidget(),
-    const Transaction(),
+    const TransactionPage(),
 
     const Center(child: Text("Analytics Page")), // Placeholder for Analytics
 
-    const Center(child: Text("Category")),
+    const Category(),
     const Settings(),
   ];
 

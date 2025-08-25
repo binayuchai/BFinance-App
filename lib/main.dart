@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'BFinance Manager',
       initialRoute: '/home',
+      theme: ThemeData(fontFamily: 'Poppins'),
       routes: AppRoutes.routes,
     );
   }
