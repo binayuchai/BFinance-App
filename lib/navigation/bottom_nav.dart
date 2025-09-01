@@ -59,6 +59,11 @@ class _BottomNavState extends State<BottomNav> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
