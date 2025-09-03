@@ -8,6 +8,7 @@ class Transaction {
   final bool isIncome;
   final Icon icon;
   final String time;
+  final String? paymentMethod;
 
   Transaction({
     required this.title,
@@ -16,6 +17,7 @@ class Transaction {
     required this.isIncome,
     required this.icon,
     required this.time,
+    this.paymentMethod,
   });
 }
 

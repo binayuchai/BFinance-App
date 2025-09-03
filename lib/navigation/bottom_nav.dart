@@ -2,6 +2,7 @@ import 'package:bfinance/features/category/category.dart';
 import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
 import 'package:bfinance/features/dashboard/view/widgets/transaction.dart';
+import 'package:bfinance/widgets/forms/transaction_form.dart';
 import 'package:flutter/material.dart';
 
 class BottomNav extends StatefulWidget {
@@ -60,7 +61,18 @@ class _BottomNavState extends State<BottomNav> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          showModalBottomSheet(
+            isScrollControlled: true,
+            context: context,
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: AddTransactionForm(),
+            ),
+          );
+        },
         child: Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
