@@ -1,3 +1,4 @@
+import 'package:bfinance/features/analytics/chart_analytics.dart';
 import 'package:bfinance/features/category/category.dart';
 import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
@@ -19,7 +20,7 @@ class _BottomNavState extends State<BottomNav> {
     const DashboardWidget(),
     const TransactionPage(),
 
-    const Center(child: Text("Analytics Page")), // Placeholder for Analytics
+    const Analytics(), // Placeholder for Analytics
 
     const Category(),
     const Settings(),
