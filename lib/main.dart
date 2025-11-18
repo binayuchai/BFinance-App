@@ -1,8 +1,5 @@
-import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/routes/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:bfinance/features/auth/view/register.dart';
-import 'package:bfinance/features/auth/view/login.dart';
 
 void main() {
   runApp(const MyApp());

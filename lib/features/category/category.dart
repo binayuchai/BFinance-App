@@ -6,16 +6,16 @@ class Category extends StatelessWidget {
   const Category({super.key});
 
   void _showAddCategoryDialog(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
-    final TextEditingController _categoryController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final TextEditingController categoryController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Add Category"),
         content: Form(
-          key: _formKey,
+          key: formKey,
           child: TextFormField(
-            controller: _categoryController,
+            controller: categoryController,
             decoration: const InputDecoration(
               labelText: "Category Name",
               border: OutlineInputBorder(),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:bfinance/services/api_service.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -12,14 +12,23 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final api = ApiService();
 
-  void _submit() {
+  void _submit() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
       print("Email: $email");
       print("Password: $password");
+      // Call the login API
+      bool success = await api.loginUser(email, password);
+      if (success) {
+        print("Login successful");
+      } else {
+        // Show error message
+        print("Login failed");
+      }
     }
   }
 
