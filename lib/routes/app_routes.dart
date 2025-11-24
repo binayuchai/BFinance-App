@@ -1,5 +1,6 @@
 import 'package:bfinance/features/auth/view/login.dart';
 import 'package:bfinance/features/auth/view/register.dart';
+import 'package:bfinance/features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
@@ -8,7 +9,7 @@ class AppRoutes {
   static const String login = "/login";
 
   static Map<String, WidgetBuilder> routes = {
-    home: (context) => const LoginScreen(),
+    home: (context) => const SplashScreen(),
     register: (context) => const RegisterScreen(),
     login: (context) => const LoginScreen(),
   };
