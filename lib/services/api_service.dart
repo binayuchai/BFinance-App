@@ -31,8 +31,11 @@ class ApiService {
     );
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
-      await storage.write(key: 'access_token', value: data['access']);
-      await storage.write(key: 'refresh_token', value: data['refresh']);
+      await storage.write(key: 'access_token', value: data['token']['access']);
+      await storage.write(
+        key: 'refresh_token',
+        value: data['token']['refresh'],
+      );
       return true;
     }
     return false;
@@ -41,16 +44,19 @@ class ApiService {
   //Login User
 
   Future<bool> loginUser(String email, String password) async {
- 
     final response = await http.post(
       Uri.parse('$baseUrl/login/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      await storage.write(key: 'access_token', value: data['access']);
-      await storage.write(key: 'refresh_token', value: data['refresh']);
+      await storage.write(key: 'access_token', value: data['token']['access']);
+      await storage.write(
+        key: 'refresh_token',
+        value: data['token']['refresh'],
+      );
       return true;
     }
     return false;
@@ -72,7 +78,10 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        await storage.write(key: 'access_token', value: data['access']);
+        await storage.write(
+          key: 'access_token',
+          value: data['token']['access'],
+        );
         return true;
       }
       if (response.statusCode == 401 || response.statusCode == 400) {

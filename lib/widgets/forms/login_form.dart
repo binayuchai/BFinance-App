@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -13,6 +14,7 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final api = ApiService();
+  final storage = FlutterSecureStorage();
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
@@ -23,8 +25,14 @@ class _LoginFormState extends State<LoginForm> {
       print("Password: $password");
       // Call the login API
       bool success = await api.loginUser(email, password);
+
       if (success) {
+        if (!mounted) return;
         print("Login successful");
+        final token = await api.getAccessToken();
+        print("Login dashboard token : $token");
+
+        Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
         // Show error message
         print("Login failed");
