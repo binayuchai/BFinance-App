@@ -1,8 +1,8 @@
 import 'package:bfinance/features/auth/view/login.dart';
 import 'package:bfinance/features/auth/view/register.dart';
 import 'package:bfinance/features/splash/splash_screen.dart';
+import 'package:bfinance/navigation/bottom_nav.dart';
 import 'package:flutter/material.dart';
-import 'package:bfinance/features/dashboard/view/dashboard.dart';
 
 class AppRoutes {
   static const String home = "/home";
@@ -14,6 +14,6 @@ class AppRoutes {
     home: (context) => const SplashScreen(),
     register: (context) => const RegisterScreen(),
     login: (context) => const LoginScreen(),
-    dashboard: (context) => const DashboardWidget(),
+    dashboard: (context) => const BottomNav(),
   };
 }

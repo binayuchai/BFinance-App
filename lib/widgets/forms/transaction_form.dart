@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key});
@@ -16,6 +20,48 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   final TextEditingController _paymentMethodController =
       TextEditingController();
   final TextEditingController _sourceController = TextEditingController();
+
+  // Implement the logic to add transaction to the database
+  final String apiUrl = 'http://127.0.0.1:8000/user/api/transcation';
+  Future<void> _addTransaction() async {
+    //Prepare the data to be sent
+    final Map<String, dynamic> data = {
+      "amount": _amountController.text,
+      "note": _noteController.text,
+      "type": _isIncome ? "income" : "expense",
+      "category": _categoryController.text,
+      "payment_method": _isIncome ? _paymentMethodController.text : "",
+      "source": _isIncome ? _sourceController.text : "",
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse("${apiUrl}/post/"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (!mounted) return;
+
+      if (response.statusCode == 201) {
+        print("Transaction added successfully");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Transaction added successfully")),
+        );
+      } else {
+        print("Failed to add transaction");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to add transaction")),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      print("Error adding transaction: $e");
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Error adding transaction")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +161,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      _addTransaction();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Processing Data")),
                       );
