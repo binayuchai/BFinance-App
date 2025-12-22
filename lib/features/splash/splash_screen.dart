@@ -26,6 +26,8 @@ class _SplashScreenState extends State<SplashScreen> {
     ); // Wait for both the delay and the login check to complete autologin() and returns bool of arrays[null,bool]
     if (result[1] == true) {
       if (!mounted) return;
+
+      print("Navigating to dashboard");
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
       if (!mounted) return;
@@ -37,17 +39,11 @@ class _SplashScreenState extends State<SplashScreen> {
     // Implement auto-login logic here
     try {
       final token = await api.ApiService().getAccessToken();
-      if (token == null) {
-        // Refresh token logic
-        final refreshedToken = await api.ApiService().refreshToken();
-        if (refreshedToken) {
-          // Navigate to home screen
-          return true;
-        } else {
-          // Navigate to login screen
+      print("Response tokenduring login: $token");
 
-          return false;
-        }
+      if (token == null) {
+        // Navigate to login
+        return false;
       } else {
         // Navigate to dashboard
         return true;

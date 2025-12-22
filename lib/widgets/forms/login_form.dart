@@ -13,7 +13,7 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final api = ApiService();
+  final ApiService api = ApiService();
   final storage = FlutterSecureStorage();
 
   void _submit() async {

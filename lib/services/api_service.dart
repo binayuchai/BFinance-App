@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class ApiService {
   final String baseUrl = 'http://127.0.0.1:8000/user/api';
@@ -10,9 +11,40 @@ class ApiService {
 
   //Get token for authenticated requests
   Future<String?> getAccessToken() async {
-    return await storage.read(key: 'access_token');
+    // Read the token from secure storage
+    final getToken = await storage.read(key: 'access_token');
+
+    // Check if the token is expired
+    if (getToken != null) {
+      print("Access token found: $getToken");
+
+      // If expired, refresh it
+      if (JwtDecoder.isExpired(getToken)) {
+        print("Token expired → refreshing");
+
+        final refreshed = await refreshToken();
+        // If refresh successful, get the new token
+        if (refreshed) {
+          final newToken = await storage.read(key: 'access_token');
+          print("New Access token after refresh: $newToken");
+          return newToken;
+        }
+        // If refresh failed, return null
+        return null;
+      }
+      return getToken;
+    }
+
+    return null;
   }
 
+  Future<Map<String, String>> authHeaders() async {
+    final token = await getAccessToken();
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
   //Register User
 
   Future<bool> registerUser(
@@ -49,6 +81,7 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
+    print("Response during login: $response");
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -65,8 +98,9 @@ class ApiService {
   //Refresh Token
 
   Future<bool> refreshToken() async {
-    final refresh = await storage.read(key: 'refresh_token');
+    final refresh = await storage.read(key: 'access_token');
     if (refresh == null) return false;
+    print("Refreshing token with refresh token: $refresh");
 
     try {
       // if token is expired, get a new one
@@ -75,6 +109,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh': refresh}),
       );
+      print("Refresh token entered: $response");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

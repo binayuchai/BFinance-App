@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:bfinance/services/api_service.dart' as api;
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key});
@@ -22,24 +23,30 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   final TextEditingController _sourceController = TextEditingController();
 
   // Implement the logic to add transaction to the database
-  final String apiUrl = 'http://127.0.0.1:8000/user/api/transcation';
+  final String apiUrl = 'http://127.0.0.1:8000/api';
   Future<void> _addTransaction() async {
     //Prepare the data to be sent
     final Map<String, dynamic> data = {
       "amount": _amountController.text,
       "note": _noteController.text,
-      "type": _isIncome ? "income" : "expense",
+      "transaction_type": _isIncome ? "Credit" : "Debit",
       "category": _categoryController.text,
       "payment_method": _isIncome ? _paymentMethodController.text : "",
       "source": _isIncome ? _sourceController.text : "",
     };
+    final accessToken = await api.ApiService().getAccessToken();
+    print("Access Token : $accessToken");
 
     try {
       final response = await http.post(
-        Uri.parse("${apiUrl}/post/"),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse("$apiUrl/transaction/"),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
         body: jsonEncode(data),
       );
+      print("Response : ${response.body}");
       if (!mounted) return;
 
       if (response.statusCode == 201) {
@@ -47,8 +54,11 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Transaction added successfully")),
         );
+        Navigator.pop(context);
       } else {
         print("Failed to add transaction");
+        Navigator.pop(context);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Failed to add transaction")),
         );
@@ -56,6 +66,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     } catch (e) {
       if (!mounted) return;
       print("Error adding transaction: $e");
+      Navigator.pop(context);
 
       ScaffoldMessenger.of(
         context,
