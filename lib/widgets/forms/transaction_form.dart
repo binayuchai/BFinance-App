@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bfinance/features/dashboard/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:bfinance/services/api_service.dart' as api;
+import 'package:bfinance/services/transaction_service.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key});
@@ -15,6 +17,7 @@ class AddTransactionForm extends StatefulWidget {
 class _AddTransactionFormState extends State<AddTransactionForm> {
   bool _isIncome = true;
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -25,32 +28,37 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   // Implement the logic to add transaction to the database
   final String apiUrl = 'http://127.0.0.1:8000/api';
   Future<void> _addTransaction() async {
+    final api_service = api.ApiService();
+    final Transaction transaction_data = Transaction(
+      id: null,
+      title: _titleController.text,
+      date: DateTime.now().toString(),
+      amount: double.parse(_amountController.text),
+      type: _isIncome ? TransactionType.income : TransactionType.expense,
+      time: DateTime.now().toString(),
+      note: _noteController.text == "" ? null : _noteController.text,
+      
+    );
+
     //Prepare the data to be sent
-    final Map<String, dynamic> data = {
-      "amount": _amountController.text,
-      "note": _noteController.text,
-      "transaction_type": _isIncome ? "Credit" : "Debit",
-      "category": _categoryController.text,
-      "payment_method": _isIncome ? _paymentMethodController.text : "",
-      "source": _isIncome ? _sourceController.text : "",
-    };
-    final accessToken = await api.ApiService().getAccessToken();
-    print("Access Token : $accessToken");
+    //  data = {
+    //   "amount": _amountController.text,
+    //   "note": _noteController.text,
+    //   "transaction_type": _isIncome ? "Credit" : "Debit",
+    //   "category": _categoryController.text,
+    //   "payment_method": _isIncome ? _paymentMethodController.text : "",
+    //   "source": _isIncome ? _sourceController.text : "",
+    // };
 
     try {
-      final response = await http.post(
-        Uri.parse("$apiUrl/transaction/"),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-        body: jsonEncode(data),
+      final transaction_service = TransactionService();
+      final response = await transaction_service.addTransaction(
+        transaction_data,
       );
-      print("Response : ${response.body}");
+
       if (!mounted) return;
 
-      if (response.statusCode == 201) {
-        print("Transaction added successfully");
+      if (response) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Transaction added successfully")),
         );
@@ -105,6 +113,17 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     selectedColor: Colors.red,
                   ),
                 ],
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _titleController,
+                keyboardType: TextInputType.multiline,
+                decoration: const InputDecoration(
+                  labelText: "Title",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? "Please enter title" : null,
               ),
               const SizedBox(height: 16.0),
               TextFormField(

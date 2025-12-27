@@ -1,28 +1,33 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+class Category {
+  final String name;
+  final Icon? icon;
+
+  Category({required this.name, this.icon});
+}
+
 enum TransactionType { income, expense } // Added enum for transaction type
 
 class Transaction {
-  final int id;
+  final int? id;
   final String? category;
   final String title; // e.g., "Salary", "Groceries"
   final String date;
   final double amount;
-  final Icon? icon;
   final TransactionType type;
   final String time;
   final String? paymentMethod;
   final String? note;
 
   Transaction({
-    required this.id,
+    this.id,
     required this.title,
     this.category,
     required this.date,
     required this.amount,
     required this.type,
-    this.icon,
     required this.time,
     this.paymentMethod,
     this.note,
@@ -55,7 +60,6 @@ class Transaction {
       'description': note ?? '',
       'category': category ?? '',
       'created_at': date,
-    
     };
   }
 }
