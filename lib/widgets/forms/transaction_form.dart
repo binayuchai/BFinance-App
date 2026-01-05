@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'package:bfinance/features/dashboard/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:bfinance/services/api_service.dart' as api;
+import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/transaction_service.dart';
+import '../../features/category/models/category.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key});
@@ -16,6 +17,7 @@ class AddTransactionForm extends StatefulWidget {
 
 class _AddTransactionFormState extends State<AddTransactionForm> {
   bool _isIncome = true;
+  int? selectedCategoryId = null;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -23,12 +25,31 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _paymentMethodController =
       TextEditingController();
-  final TextEditingController _sourceController = TextEditingController();
+
+  // Logic to fetch categories from the database
+  List<Category> _categories = [];
+  final ApiService api = ApiService();
+
+  Future<void> fetchCategories() async {
+    final headers = await api.authHeaders();
+
+    final String url = api.baseUrl + '/categories/';
+    try {
+      final response = await http.get(Uri.parse(url), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print("Fetched categories: $data");
+        setState(() {
+          _categories = data.map((e) => Category.fromJson(e)).toList();
+        });
+      }
+    } catch (e) {
+      print("Error fetching categories: $e");
+    }
+  }
 
   // Implement the logic to add transaction to the database
-  final String apiUrl = 'http://127.0.0.1:8000/api';
   Future<void> _addTransaction() async {
-    final api_service = api.ApiService();
     final Transaction transaction_data = Transaction(
       id: null,
       title: _titleController.text,
@@ -37,7 +58,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       type: _isIncome ? TransactionType.income : TransactionType.expense,
       time: DateTime.now().toString(),
       note: _noteController.text == "" ? null : _noteController.text,
-      
+      category: 1,
     );
 
     //Prepare the data to be sent
@@ -115,6 +136,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 ],
               ),
               const SizedBox(height: 16.0),
+
               TextFormField(
                 controller: _titleController,
                 keyboardType: TextInputType.multiline,
@@ -137,31 +159,46 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     value!.isEmpty ? "Please enter amount" : null,
               ),
               const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _categoryController,
+
+                decoration: const InputDecoration(
+                  labelText: "Category",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? "Please enter category" : null,
+              ),
+              const SizedBox(height: 16.0),
 
               if (_isIncome)
-                TextFormField(
-                  controller: _sourceController,
+                DropdownButtonFormField<int>(
+                  initialValue: selectedCategoryId,
+                  items: _categories
+                      .map(
+                        (e) => DropdownMenuItem<int>(
+                          child: Text(e.name),
+                          value: e.id,
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (int? newValue) {
+                    // Handle category selection
+                    setState(() {
+                      selectedCategoryId = newValue;
+                    });
+                  },
+
                   decoration: const InputDecoration(
                     labelText: "Source",
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
-                      value!.isEmpty ? "Please enter source" : null,
+                      value == null ? "Please enter category" : null,
                 )
               else
                 Column(
                   children: [
-                    TextFormField(
-                      controller: _categoryController,
-
-                      decoration: const InputDecoration(
-                        labelText: "Category",
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value!.isEmpty ? "Please enter category" : null,
-                    ),
-                    const SizedBox(height: 16.0),
                     TextFormField(
                       controller: _paymentMethodController,
                       decoration: const InputDecoration(

@@ -1,18 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class Category {
-  final String name;
-  final Icon? icon;
-
-  Category({required this.name, this.icon});
-}
-
 enum TransactionType { income, expense } // Added enum for transaction type
 
 class Transaction {
   final int? id;
-  final String? category;
+  final int category;
   final String title; // e.g., "Salary", "Groceries"
   final String date;
   final double amount;
@@ -20,17 +13,19 @@ class Transaction {
   final String time;
   final String? paymentMethod;
   final String? note;
+  final Icon? icon;
 
   Transaction({
     this.id,
     required this.title,
-    this.category,
+    required this.category,
     required this.date,
     required this.amount,
     required this.type,
     required this.time,
     this.paymentMethod,
     this.note,
+    this.icon,
   });
   bool get isIncome =>
       type == TransactionType.income; // Helper getter to check if it's income
@@ -44,7 +39,7 @@ class Transaction {
           ? TransactionType.income
           : TransactionType.expense,
       note: json['description'] ?? '',
-      category: json['category'] ?? '',
+      category: json['category'],
       date: (json['created_at']),
       time: json['time'] ?? '',
     );
@@ -58,7 +53,7 @@ class Transaction {
       'amount': amount,
       'transaction_type': type == TransactionType.income ? 'Credit' : 'Debit',
       'description': note ?? '',
-      'category': category ?? '',
+      'category': category,
       'created_at': date,
     };
   }
@@ -75,6 +70,7 @@ final List<Transaction> transactions = [
     type: TransactionType.income,
     icon: const Icon(Icons.wallet, color: Colors.blue),
     time: "10:00 AM",
+    category: 1,
   ),
   Transaction(
     id: 2,
@@ -84,6 +80,7 @@ final List<Transaction> transactions = [
     type: TransactionType.expense,
     icon: const Icon(Icons.medical_services, color: Colors.teal),
     time: "2:30 PM",
+    category: 4,
   ),
   Transaction(
     id: 3,
@@ -93,6 +90,7 @@ final List<Transaction> transactions = [
     type: TransactionType.expense,
     icon: const Icon(Icons.electric_bolt, color: Colors.blue),
     time: "9:00 AM",
+    category: 6,
   ),
   Transaction(
     id: 4,
@@ -102,5 +100,6 @@ final List<Transaction> transactions = [
     type: TransactionType.income,
     icon: const Icon(Icons.attach_money, color: Colors.green),
     time: "1:00 PM",
+    category: 2,
   ),
 ];

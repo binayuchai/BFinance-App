@@ -1,0 +1,32 @@
+import 'package:bfinance/services/api_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:bfinance/features/category/models/category.dart';
+
+class CategoryService {
+  final String apiUrl = 'http://127.0.0.1:8000/api/category';
+  final ApiService api = ApiService();
+
+  // Add methods for fetching and managing categories here
+
+  // GET Categories from API
+  Future<List<Category>> getCategories() async {
+    // Implementation for fetching categories from API
+    try {
+      final headers = await api.authHeaders();
+      final response = await http.get(Uri.parse(apiUrl), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => Category.fromJson(e)).toList();
+      } else {
+        print(
+          "Failed to fetch categories. Status code: ${response.statusCode}",
+        );
+        return [];
+      }
+    } catch (e) {
+      print("Error fetching categories: $e");
+      return [];
+    }
+  }
+}
