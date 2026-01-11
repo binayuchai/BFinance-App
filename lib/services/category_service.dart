@@ -13,10 +13,13 @@ class CategoryService {
   Future<List<Category>> getCategories() async {
     // Implementation for fetching categories from API
     try {
+      print("Fetching categories from API...");
       final headers = await api.authHeaders();
       final response = await http.get(Uri.parse(apiUrl), headers: headers);
+      print("Category fetch response status: ${response.statusCode}");
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        print("Fetched categories: $data");
         return data.map((e) => Category.fromJson(e)).toList();
       } else {
         print(

@@ -1,11 +1,14 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class ApiService {
+  final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>(debugLabel: 'navigatorKey');
   final String baseUrl = 'http://127.0.0.1:8000/user/api';
   final storage = FlutterSecureStorage();
 
@@ -40,6 +43,9 @@ class ApiService {
 
   Future<Map<String, String>> authHeaders() async {
     final token = await getAccessToken();
+    if (token == null) {
+      throw Exception('No valid access token found');
+    }
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
@@ -98,7 +104,7 @@ class ApiService {
   //Refresh Token
 
   Future<bool> refreshToken() async {
-    final refresh = await storage.read(key: 'access_token');
+    final refresh = await storage.read(key: 'refresh_token');
     if (refresh == null) return false;
     print("Refreshing token with refresh token: $refresh");
 
@@ -123,6 +129,7 @@ class ApiService {
         // Refresh token is invalid or expired
         await storage.delete(key: 'access_token');
         await storage.delete(key: 'refresh_token');
+        return false;
       }
     } catch (e) {
       print('Error refreshing token: $e');
@@ -130,4 +137,12 @@ class ApiService {
     }
     return false;
   }
+
+  Future<void> logout() async {
+    await storage.delete(key: 'access_token');
+    await storage.delete(key: 'refresh_token');
+    navigatorKey.currentState!.pushAndRemoveUntil(
+      '/login',
+      (route) => false,
+    );
 }

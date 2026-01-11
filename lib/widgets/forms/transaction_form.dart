@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bfinance/features/dashboard/models/transaction.dart';
+import 'package:bfinance/services/category_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:bfinance/services/api_service.dart';
@@ -18,6 +19,7 @@ class AddTransactionForm extends StatefulWidget {
 class _AddTransactionFormState extends State<AddTransactionForm> {
   bool _isIncome = true;
   int? selectedCategoryId = null;
+  bool _isLoadingCategories = true;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -26,6 +28,12 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   final TextEditingController _paymentMethodController =
       TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    fetchCategories(); // Fetch categories when the form is initialized
+  }
+
   // Logic to fetch categories from the database
   List<Category> _categories = [];
   final ApiService api = ApiService();
@@ -33,18 +41,23 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   Future<void> fetchCategories() async {
     final headers = await api.authHeaders();
 
-    final String url = api.baseUrl + '/categories/';
     try {
-      final response = await http.get(Uri.parse(url), headers: headers);
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+      final category_service = CategoryService();
+      print("enter categories with headers:");
+      final response = await category_service.getCategories();
+      if (response.isNotEmpty) {
+        final data = response;
         print("Fetched categories: $data");
         setState(() {
-          _categories = data.map((e) => Category.fromJson(e)).toList();
+          _isLoadingCategories = false;
+          _categories = data;
         });
       }
     } catch (e) {
-      print("Error fetching categories: $e");
+      print("Error fetching  in transaction form categories: $e");
+      setState(() {
+        _isLoadingCategories = false;
+      });
     }
   }
 
@@ -171,7 +184,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               ),
               const SizedBox(height: 16.0),
 
-              if (_isIncome)
+              if (_isLoadingCategories)
+                const CircularProgressIndicator()
+              else
                 DropdownButtonFormField<int>(
                   initialValue: selectedCategoryId,
                   items: _categories
@@ -195,8 +210,10 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   ),
                   validator: (value) =>
                       value == null ? "Please enter category" : null,
-                )
-              else
+                ),
+
+              const SizedBox(height: 16.0),
+              if (_isIncome)
                 Column(
                   children: [
                     TextFormField(
