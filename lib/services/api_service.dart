@@ -5,10 +5,9 @@ import 'package:http/http.dart' as http;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:bfinance/navigation/core_navigation.dart';
 
 class ApiService {
-  final GlobalKey<NavigatorState> navigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'navigatorKey');
   final String baseUrl = 'http://127.0.0.1:8000/user/api';
   final storage = FlutterSecureStorage();
 
@@ -17,33 +16,34 @@ class ApiService {
     // Read the token from secure storage
     final getToken = await storage.read(key: 'access_token');
 
-    // Check if the token is expired
-    if (getToken != null) {
-      print("Access token found: $getToken");
-
-      // If expired, refresh it
-      if (JwtDecoder.isExpired(getToken)) {
-        print("Token expired → refreshing");
-
-        final refreshed = await refreshToken();
-        // If refresh successful, get the new token
-        if (refreshed) {
-          final newToken = await storage.read(key: 'access_token');
-          print("New Access token after refresh: $newToken");
-          return newToken;
-        }
-        // If refresh failed, return null
-        return null;
-      }
-      return getToken;
+    if (getToken == null) {
+      return null;
     }
 
-    return null;
+    // Check if the token is expired
+    print("Access token found: $getToken");
+
+    // If expired, refresh it
+    if (JwtDecoder.isExpired(getToken)) {
+      print("Token expired → refreshing");
+
+      final refreshed = await refreshToken();
+      // If refresh successful, get the new token
+      if (refreshed) {
+        final newToken = await storage.read(key: 'access_token');
+        print("New Access token after refresh: $newToken");
+        return newToken;
+      }
+      // If refresh failed, return null
+      return null;
+    }
+    return getToken;
   }
 
   Future<Map<String, String>> authHeaders() async {
     final token = await getAccessToken();
     if (token == null) {
+      await logout();
       throw Exception('No valid access token found');
     }
     return {
@@ -119,10 +119,9 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        await storage.write(
-          key: 'access_token',
-          value: data['token']['access'],
-        );
+        print("New access token: ${data}");
+        await storage.write(key: 'access_token', value: data['access']);
+        print("Token refreshed successfully.");
         return true;
       }
       if (response.statusCode == 401 || response.statusCode == 400) {
@@ -141,8 +140,9 @@ class ApiService {
   Future<void> logout() async {
     await storage.delete(key: 'access_token');
     await storage.delete(key: 'refresh_token');
-    navigatorKey.currentState!.pushAndRemoveUntil(
+    navigatorKey.currentState!.pushNamedAndRemoveUntil(
       '/login',
       (route) => false,
     );
+  }
 }

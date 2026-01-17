@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:bfinance/features/dashboard/models/transaction.dart';
 import 'package:bfinance/services/category_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/transaction_service.dart';
-import '../../features/category/models/category.dart';
+import '../../features/category/data/models/category.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key});
@@ -18,7 +16,7 @@ class AddTransactionForm extends StatefulWidget {
 
 class _AddTransactionFormState extends State<AddTransactionForm> {
   bool _isIncome = true;
-  int? selectedCategoryId = null;
+  int? selectedCategoryId;
   bool _isLoadingCategories = true;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
@@ -38,19 +36,29 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   List<Category> _categories = [];
   final ApiService api = ApiService();
 
-  Future<void> fetchCategories() async {
-    final headers = await api.authHeaders();
+  //Defining the Error variable
+  String? _amountError;
 
+  Future<void> fetchCategories() async {
     try {
       final category_service = CategoryService();
       print("enter categories with headers:");
       final response = await category_service.getCategories();
+      print("Response from getCategories: $response");
       if (response.isNotEmpty) {
         final data = response;
         print("Fetched categories: $data");
         setState(() {
-          _isLoadingCategories = false;
           _categories = data;
+          selectedCategoryId = _categories.isNotEmpty
+              ? _categories.first.id
+              : null;
+          _isLoadingCategories = false;
+        });
+      } else {
+        setState(() {
+          _categories = [];
+          _isLoadingCategories = false;
         });
       }
     } catch (e) {
@@ -63,15 +71,32 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   // Implement the logic to add transaction to the database
   Future<void> _addTransaction() async {
+    setState(() {
+      _amountError = null;
+    });
+    //Basic validation
+    double? amount; // Declare amount variable
+
+    try {
+      amount = double.parse(_amountController.text);
+    } catch (e) {
+      print("Invalid amount format: $e");
+      setState(() {
+        _amountError = "Please enter a valid number for amount";
+      });
+      return;
+    }
+
+    ;
     final Transaction transaction_data = Transaction(
       id: null,
       title: _titleController.text,
       date: DateTime.now().toString(),
-      amount: double.parse(_amountController.text),
+      amount: amount,
       type: _isIncome ? TransactionType.income : TransactionType.expense,
       time: DateTime.now().toString(),
       note: _noteController.text == "" ? null : _noteController.text,
-      category: 1,
+      category: selectedCategoryId ?? 1,
     );
 
     //Prepare the data to be sent
@@ -164,23 +189,14 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Amount",
-                  border: OutlineInputBorder(),
+                  errorText: _amountError,
+
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
                     value!.isEmpty ? "Please enter amount" : null,
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _categoryController,
-
-                decoration: const InputDecoration(
-                  labelText: "Category",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? "Please enter category" : null,
               ),
               const SizedBox(height: 16.0),
 
@@ -188,16 +204,17 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 const CircularProgressIndicator()
               else
                 DropdownButtonFormField<int>(
-                  initialValue: selectedCategoryId,
+                  initialValue:
+                      selectedCategoryId, // Set the initial selected value
                   items: _categories
                       .map(
                         (e) => DropdownMenuItem<int>(
-                          child: Text(e.name),
                           value: e.id,
+                          child: Text(e.name),
                         ),
                       )
                       .toList(),
-                  onChanged: (int? newValue) {
+                  onChanged: (newValue) {
                     // Handle category selection
                     setState(() {
                       selectedCategoryId = newValue;
@@ -205,7 +222,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   },
 
                   decoration: const InputDecoration(
-                    labelText: "Source",
+                    labelText: "Category",
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
@@ -213,7 +230,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 ),
 
               const SizedBox(height: 16.0),
-              if (_isIncome)
+              if (!_isIncome)
                 Column(
                   children: [
                     TextFormField(
@@ -232,12 +249,11 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 controller: _noteController,
                 keyboardType: TextInputType.multiline,
                 decoration: const InputDecoration(
-                  labelText: "Note",
+                  labelText: "Enter Note (Optional)",
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                    value!.isEmpty ? "Please enter note" : null,
               ),
+
               const SizedBox(height: 16.0),
               //Save Button
               SizedBox(

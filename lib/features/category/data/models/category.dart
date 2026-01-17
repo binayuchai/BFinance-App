@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:bfinance/features/category/data/mappers/category_mapper.dart';
 
 class Category {
   final int? id;
   final String name;
   final DateTime createdAt;
-  final Icon? icon;
+  final Icon icon;
 
-  Category({this.id, required this.name, this.icon, DateTime? createdAt})
-    : createdAt = createdAt ?? DateTime.now();
+  Category({
+    this.id,
+    required this.name,
+    required this.icon,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   //Function to convert JSON  to Model(GET from API)
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
+      id: json['id'],
       name: json['name'],
-      icon: json['icon']
-          ? Icon(IconData(json['icon'], fontFamily: 'MaterialIcons'))
-          : Icon(Icons.wallet),
+      icon: CategoryIconMapper.getIcon(json['iconKey'] ?? 'wallet'),
     );
   }
+
   // Function to convert Model to JSON (POST to API)
   Map<String, dynamic> categoryToJson() {
     return {'name': name};

@@ -5,7 +5,7 @@ import 'dart:convert';
 import '../features/dashboard/models/transaction.dart';
 
 class TransactionService {
-  final String apiUrl = 'http://127.0.0.1:8000/api/transactions';
+  final String apiUrl = 'http://127.0.0.1:8000/api/transaction/';
   final ApiService api = ApiService();
 
   //GET Transactions from API
