@@ -7,6 +7,9 @@ import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/transaction_service.dart';
 import '../../features/category/data/models/category.dart';
 
+import 'package:provider/provider.dart';
+import 'package:bfinance/providers/category_provider.dart';
+
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key});
 
@@ -16,7 +19,6 @@ class AddTransactionForm extends StatefulWidget {
 
 class _AddTransactionFormState extends State<AddTransactionForm> {
   bool _isIncome = true;
-  int? selectedCategoryId;
   bool _isLoadingCategories = true;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
@@ -27,47 +29,15 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    fetchCategories(); // Fetch categories when the form is initialized
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    context.read<CategoryProvider>().fetchCategories();
   }
 
-  // Logic to fetch categories from the database
-  List<Category> _categories = [];
   final ApiService api = ApiService();
 
   //Defining the Error variable
   String? _amountError;
-
-  Future<void> fetchCategories() async {
-    try {
-      final category_service = CategoryService();
-      print("enter categories with headers:");
-      final response = await category_service.getCategories();
-      print("Response from getCategories: $response");
-      if (response.isNotEmpty) {
-        final data = response;
-        print("Fetched categories: $data");
-        setState(() {
-          _categories = data;
-          selectedCategoryId = _categories.isNotEmpty
-              ? _categories.first.id
-              : null;
-          _isLoadingCategories = false;
-        });
-      } else {
-        setState(() {
-          _categories = [];
-          _isLoadingCategories = false;
-        });
-      }
-    } catch (e) {
-      print("Error fetching  in transaction form categories: $e");
-      setState(() {
-        _isLoadingCategories = false;
-      });
-    }
-  }
 
   // Implement the logic to add transaction to the database
   Future<void> _addTransaction() async {
@@ -87,7 +57,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       return;
     }
 
-    ;
+    final categoryProvider = context.read<CategoryProvider>();
     final Transaction transaction_data = Transaction(
       id: null,
       title: _titleController.text,
@@ -96,7 +66,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       type: _isIncome ? TransactionType.income : TransactionType.expense,
       time: DateTime.now().toString(),
       note: _noteController.text == "" ? null : _noteController.text,
-      category: selectedCategoryId ?? 1,
+      category: categoryProvider.selectedCategoryId ?? 1,
     );
 
     //Prepare the data to be sent
@@ -143,6 +113,11 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   @override
   Widget build(BuildContext context) {
+    final categoryProvider = context.watch<CategoryProvider>();
+
+    if (categoryProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: SingleChildScrollView(
@@ -204,9 +179,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 const CircularProgressIndicator()
               else
                 DropdownButtonFormField<int>(
-                  initialValue:
-                      selectedCategoryId, // Set the initial selected value
-                  items: _categories
+                  initialValue: categoryProvider
+                      .selectedCategoryId, // Set the initial selected value
+                  items: categoryProvider.categories
                       .map(
                         (e) => DropdownMenuItem<int>(
                           value: e.id,
@@ -216,9 +191,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                       .toList(),
                   onChanged: (newValue) {
                     // Handle category selection
-                    setState(() {
-                      selectedCategoryId = newValue;
-                    });
+                    categoryProvider.setSelectedCategoryId(newValue);
                   },
 
                   decoration: const InputDecoration(
