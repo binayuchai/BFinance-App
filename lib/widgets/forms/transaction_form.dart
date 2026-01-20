@@ -19,20 +19,11 @@ class AddTransactionForm extends StatefulWidget {
 
 class _AddTransactionFormState extends State<AddTransactionForm> {
   bool _isIncome = true;
-  bool _isLoadingCategories = true;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController();
-  final TextEditingController _paymentMethodController =
-      TextEditingController();
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    context.read<CategoryProvider>().fetchCategories();
-  }
 
   final ApiService api = ApiService();
 
@@ -175,49 +166,32 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               ),
               const SizedBox(height: 16.0),
 
-              if (_isLoadingCategories)
-                const CircularProgressIndicator()
-              else
-                DropdownButtonFormField<int>(
-                  initialValue: categoryProvider
-                      .selectedCategoryId, // Set the initial selected value
-                  items: categoryProvider.categories
-                      .map(
-                        (e) => DropdownMenuItem<int>(
-                          value: e.id,
-                          child: Text(e.name),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (newValue) {
-                    // Handle category selection
-                    categoryProvider.setSelectedCategoryId(newValue);
-                  },
-
-                  decoration: const InputDecoration(
-                    labelText: "Category",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) =>
-                      value == null ? "Please enter category" : null,
-                ),
-
-              const SizedBox(height: 16.0),
-              if (!_isIncome)
-                Column(
-                  children: [
-                    TextFormField(
-                      controller: _paymentMethodController,
-                      decoration: const InputDecoration(
-                        labelText: "Payment Method",
-                        border: OutlineInputBorder(),
+              DropdownButtonFormField<int>(
+                initialValue: categoryProvider
+                    .selectedCategoryId, // Set the initial selected value
+                items: categoryProvider.categories
+                    .map(
+                      (e) => DropdownMenuItem<int>(
+                        value: e.id,
+                        child: Text(e.name),
                       ),
-                      validator: (value) =>
-                          value!.isEmpty ? "Please enter payment method" : null,
-                    ),
-                  ],
+                    )
+                    .toList(),
+                onChanged: (newValue) {
+                  // Handle category selection
+                  categoryProvider.setSelectedCategoryId(newValue);
+                },
+
+                decoration: const InputDecoration(
+                  labelText: "Category",
+                  border: OutlineInputBorder(),
                 ),
+                validator: (value) =>
+                    value == null ? "Please enter category" : null,
+              ),
+
               const SizedBox(height: 16.0),
+
               TextFormField(
                 controller: _noteController,
                 keyboardType: TextInputType.multiline,

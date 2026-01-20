@@ -20,10 +20,11 @@ class CategoryProvider extends ChangeNotifier {
 
   Future<void> fetchCategories() async {
     // if data is already loaded, do not fetch again
-    if (_isLoaded) return; // Prevent redundant fetches
+    if (_isLoaded || _isLoading) return; // Prevent redundant fetches
 
     // Set loading state to true and notify listeners
     _isLoading = true;
+    notifyListeners();
     try {
       final category_service = CategoryService();
       print("enter categories with headers:");
@@ -36,15 +37,15 @@ class CategoryProvider extends ChangeNotifier {
           _selectedCategoryId = _categories.first.id;
         }
         _isLoaded = true;
-        notifyListeners();
       } else {
         _categories = [];
         _isLoading = false;
       }
     } catch (e) {
-      print("Error fetching  in transaction form categories: $e");
+      debugPrint("Error fetching categories: $e");
+    } finally {
+      _isLoading = false; // Set loading state to false after fetch attempt
+      notifyListeners();
     }
-    _isLoading = false; // Set loading state to false after fetching
-    notifyListeners();
   }
 }

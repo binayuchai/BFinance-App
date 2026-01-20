@@ -18,7 +18,8 @@ class MyApp extends StatelessWidget {
       providers: [
         // Add your providers here
         ChangeNotifierProvider(
-          create: (_) => CategoryProvider(),
+          lazy: false,
+          create: (_) => CategoryProvider()..fetchCategories(),
         ), //  Holds & exposes category state; rebuilds UI on changes
       ],
       child: MaterialApp(
