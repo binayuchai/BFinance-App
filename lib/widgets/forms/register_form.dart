@@ -18,7 +18,6 @@ class _RegisterFormState extends State<RegisterForm> {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
-      final confirmPassword = _confirmPasswordController.text.trim();
 
       print("Email: $email");
       print("Password: $password");

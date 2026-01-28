@@ -1,6 +1,7 @@
 import 'package:bfinance/services/api_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'package:bfinance/features/category/data/models/category.dart';
 
 class CategoryService {
@@ -15,7 +16,15 @@ class CategoryService {
     try {
       print("Fetching categories from API...");
       final headers = await api.authHeaders();
-      final response = await http.get(Uri.parse(apiUrl), headers: headers);
+      final response = await http
+          .get(Uri.parse(apiUrl), headers: headers)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              print("Request timeout");
+              throw TimeoutException('Category fetch request timed out');
+            },
+          );
       print("Category fetch response status: ${response.statusCode}");
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);

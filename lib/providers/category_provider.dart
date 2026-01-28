@@ -1,7 +1,7 @@
 import 'package:bfinance/features/category/data/models/category.dart';
+import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/category_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class CategoryProvider extends ChangeNotifier {
   List<Category> _categories = [];
@@ -21,6 +21,9 @@ class CategoryProvider extends ChangeNotifier {
   Future<void> fetchCategories() async {
     // if data is already loaded, do not fetch again
     if (_isLoaded || _isLoading) return; // Prevent redundant fetches
+
+    final token = await ApiService().getAccessToken();
+    if (token == null) return; // user not authenticated
 
     // Set loading state to true and notify listeners
     _isLoading = true;
@@ -47,5 +50,10 @@ class CategoryProvider extends ChangeNotifier {
       _isLoading = false; // Set loading state to false after fetch attempt
       notifyListeners();
     }
+  }
+
+  // Ensure categories are loaded
+  Future<void> ensureLoaded() async {
+    await fetchCategories();
   }
 }

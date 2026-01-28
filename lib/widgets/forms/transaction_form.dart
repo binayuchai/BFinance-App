@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:bfinance/features/dashboard/models/transaction.dart';
-import 'package:bfinance/services/category_service.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/transaction_service.dart';
-import '../../features/category/data/models/category.dart';
 
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/category_provider.dart';
@@ -23,7 +21,6 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
-
 
   final ApiService api = ApiService();
 

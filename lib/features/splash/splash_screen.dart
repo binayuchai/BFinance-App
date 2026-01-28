@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart' as api;
 import 'package:flutter/rendering.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -28,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (!mounted) return;
 
       print("Navigating to dashboard");
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      Navigator.pushReplacementNamed(context, '/app');
     } else {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/login');
