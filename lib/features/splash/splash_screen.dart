@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (!mounted) return;
 
       print("Navigating to dashboard");
-      Navigator.pushReplacementNamed(context, '/app');
+      Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/login');

@@ -8,10 +8,12 @@ class CategoryProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isLoaded = false;
   int? _selectedCategoryId;
+  String? _error;
 
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
   int? get selectedCategoryId => _selectedCategoryId;
+  String? get error => _error;
 
   void setSelectedCategoryId(int? id) {
     _selectedCategoryId = id;
@@ -23,10 +25,15 @@ class CategoryProvider extends ChangeNotifier {
     if (_isLoaded || _isLoading) return; // Prevent redundant fetches
 
     final token = await ApiService().getAccessToken();
-    if (token == null) return; // user not authenticated
+    if (token == null) {
+      _error = "User not authenticated";
+      notifyListeners();
+      return; // user not authenticated
+    }
 
     // Set loading state to true and notify listeners
     _isLoading = true;
+    _error = null;
     notifyListeners();
     try {
       final category_service = CategoryService();
@@ -40,12 +47,15 @@ class CategoryProvider extends ChangeNotifier {
           _selectedCategoryId = _categories.first.id;
         }
         _isLoaded = true;
+        _error = null;
       } else {
         _categories = [];
-        _isLoading = false;
+        _isLoaded = true;
+        _error = "No categories found";
       }
     } catch (e) {
-      debugPrint("Error fetching categories: $e");
+      _error = "Error fetching categories: $e";
+      debugPrint(_error);
     } finally {
       _isLoading = false; // Set loading state to false after fetch attempt
       notifyListeners();

@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:bfinance/features/category/data/models/category.dart';
 
 class CategoryService {
-  final String apiUrl = 'http://127.0.0.1:8000/api/category';
+  final String apiUrl = 'http://127.0.0.1:8000/api/category/';
   final ApiService api = ApiService();
 
   // Add methods for fetching and managing categories here

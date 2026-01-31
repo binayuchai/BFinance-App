@@ -100,11 +100,25 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CategoryProvider>().ensureLoaded();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final categoryProvider = context.watch<CategoryProvider>();
 
     if (categoryProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    // 2️⃣ Loaded but empty → fallback message
+    if (!categoryProvider.isLoading && categoryProvider.categories.isEmpty) {
+      return const Center(child: Text("No categories available"));
     }
     return Padding(
       padding: const EdgeInsets.all(16.0),
