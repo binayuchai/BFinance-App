@@ -1,3 +1,4 @@
+import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/navigation/core_navigation.dart';
@@ -20,6 +21,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => CategoryProvider(),
         ), //  Holds & exposes category state; rebuilds UI on changes
+        ChangeNotifierProvider(
+          create: (_) => TransactionProvider(),
+        ), //  Holds & exposes transaction state; rebuilds UI on changes
       ],
       child: MaterialApp(
         title: 'BFinance Manager',

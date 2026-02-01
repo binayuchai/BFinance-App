@@ -9,7 +9,7 @@ class TransactionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Transaction List')),
-      body: TransactionList(transactions: transactions),
+      body: TransactionList(),
     );
   }
 }

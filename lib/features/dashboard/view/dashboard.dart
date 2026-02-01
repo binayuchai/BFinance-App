@@ -25,7 +25,7 @@ class DashboardWidget extends StatelessWidget {
           ),
           SizedBox(height: 20),
 
-          Expanded(child: TransactionList(transactions: transactions)),
+          Expanded(child: TransactionList()),
         ],
       ),
     );
