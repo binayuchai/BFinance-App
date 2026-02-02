@@ -3,8 +3,10 @@ import 'package:bfinance/features/category/category.dart';
 import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
 import 'package:bfinance/features/dashboard/view/widgets/transaction.dart';
+import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/widgets/forms/transaction_form.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -62,8 +64,8 @@ class _BottomNavState extends State<BottomNav> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
+        onPressed: () async {
+          final result = await showModalBottomSheet(
             isScrollControlled: true,
             context: context,
             builder: (context) => Padding(
@@ -73,6 +75,17 @@ class _BottomNavState extends State<BottomNav> {
               child: AddTransactionForm(),
             ),
           );
+          if (result == true) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Transaction added successfully")),
+            );
+            // Refresh transactions
+            context.read<TransactionProvider>().fetchTransactions();
+          } else if (result == false) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Transaction addition cancelled")),
+            );
+          }
         },
         child: Icon(Icons.add),
       ),

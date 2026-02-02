@@ -76,26 +76,14 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       if (!mounted) return;
 
       if (response) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Transaction added successfully")),
-        );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } else {
-        print("Failed to add transaction");
-        Navigator.pop(context);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to add transaction")),
-        );
+        Navigator.pop(context, false);
       }
     } catch (e) {
       if (!mounted) return;
       print("Error adding transaction: $e");
-      Navigator.pop(context);
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Error adding transaction")));
+      Navigator.pop(context, false);
     }
   }
 
