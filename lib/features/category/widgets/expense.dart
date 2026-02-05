@@ -1,14 +1,28 @@
 import 'package:bfinance/features/dashboard/models/transaction.dart';
+import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class CategoryExpenses extends StatelessWidget {
+class CategoryExpenses extends StatefulWidget {
   const CategoryExpenses({super.key});
 
   @override
+  State<CategoryExpenses> createState() => _CategoryExpensesState();
+}
+
+class _CategoryExpensesState extends State<CategoryExpenses> {
+  @override
   Widget build(BuildContext context) {
-    final List<Transaction> expenseTransactions = transactions
+    final transactionProvider = context.watch<TransactionProvider>();
+
+    if (transactionProvider.isLoading) {
+      return Center(child: Text("Loading transactions..."));
+    }
+    final List<Transaction> expenseTransactions = transactionProvider
+        .transactions
         .where((tx) => !tx.isIncome)
         .toList();
+
     return ListView.builder(
       itemCount: expenseTransactions.length,
 

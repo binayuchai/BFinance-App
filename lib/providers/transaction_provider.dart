@@ -49,5 +49,24 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  // Add a new transaction and refresh the list
+  Future<bool> addTransactionProvider(Transaction tx) async {
+    try {
+      final transactionService = TransactionService();
+      final success = await transactionService.addTransaction(tx);
 
+      if (success) {
+        // Refresh the transaction list
+        transactions.insert(0, tx);
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      {
+        _error = "Failed to add the transaction $e";
+        notifyListeners();
+        return false;
+      }
+    }
+  }
 }

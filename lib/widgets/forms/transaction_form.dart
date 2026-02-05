@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bfinance/features/dashboard/models/transaction.dart';
+import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/transaction_service.dart';
@@ -68,8 +69,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     // };
 
     try {
-      final transaction_service = TransactionService();
-      final response = await transaction_service.addTransaction(
+      
+      final response = await context.read<TransactionProvider>().addTransactionProvider(
         transaction_data,
       );
 

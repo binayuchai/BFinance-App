@@ -30,11 +30,12 @@ class Transaction {
       type == TransactionType.income; // Helper getter to check if it's income
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
+    final typStr = (json['transaction_type'] ?? '').toString().toLowerCase();
     return Transaction(
       id: json['id'],
       title: json['title'],
       amount: double.parse(json['amount']),
-      type: json['transaction_type'] == 'Credit'
+      type: typStr == 'credit'
           ? TransactionType.income
           : TransactionType.expense,
       note: json['description'] ?? '',
@@ -50,7 +51,7 @@ class Transaction {
       'id': id,
       'title': title,
       'amount': amount,
-      'transaction_type': type == TransactionType.income ? 'Credit' : 'Debit',
+      'transaction_type': type == TransactionType.income ? 'credit' : 'debit',
       'description': note ?? '',
       'category': category,
       'created_at': date,

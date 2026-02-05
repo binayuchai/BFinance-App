@@ -3,6 +3,7 @@ import 'package:bfinance/features/category/category.dart';
 import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
 import 'package:bfinance/features/dashboard/view/widgets/transaction.dart';
+import 'package:bfinance/providers/category_provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/widgets/forms/transaction_form.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +66,26 @@ class _BottomNavState extends State<BottomNav> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          final categoryProvider = context.read<CategoryProvider>();
+          // Ensure categories are loaded before adding a transaction
+          await categoryProvider.ensureLoaded();
+
+          if (!mounted) return;
+
+          if (categoryProvider.categories.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  "Please add a category before adding transactions",
+                ),
+              ),
+            );
+            //Return to category page
+            setState(() {
+              _selectedIndex = 4;
+            });
+          }
+
           final result = await showModalBottomSheet(
             isScrollControlled: true,
             context: context,
@@ -80,7 +101,7 @@ class _BottomNavState extends State<BottomNav> {
               const SnackBar(content: Text("Transaction added successfully")),
             );
             // Refresh transactions
-            context.read<TransactionProvider>().fetchTransactions();
+            // context.read<TransactionProvider>().fetchTransactions();
           } else if (result == false) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Transaction addition cancelled")),
