@@ -31,6 +31,7 @@ class Transaction {
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     final typStr = (json['transaction_type'] ?? '').toString().toLowerCase();
+
     return Transaction(
       id: json['id'],
       title: json['title'],

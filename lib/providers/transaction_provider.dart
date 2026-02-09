@@ -1,3 +1,4 @@
+import 'package:bfinance/features/dashboard/helper/transaction_summary.dart';
 import 'package:bfinance/features/dashboard/models/transaction.dart';
 import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/transaction_service.dart';
@@ -13,6 +14,10 @@ class TransactionProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isLoaded => _isLoaded;
   String? get error => _error;
+
+  // getter for total summary of transactions
+  TransactionSummary get summary =>
+      TransactionSummary.fromTransactions(transactions);
 
   Future<void> fetchTransactions() async {
     if (_isLoaded || _isLoading) return; // Prevent redundant fetches

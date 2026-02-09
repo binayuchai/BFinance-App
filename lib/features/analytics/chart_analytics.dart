@@ -142,7 +142,7 @@ class Analytics extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(
+                /* SizedBox(
                   height: 250,
                   child: BarChart(
                     BarChartData(
@@ -185,7 +185,7 @@ class Analytics extends StatelessWidget {
                     duration: Duration(milliseconds: 1500), // Optional
                     curve: Curves.easeInBack, // Optional
                   ),
-                ),
+                ),  */
               ],
             ),
           ),
