@@ -1,5 +1,7 @@
+import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 
 class Analytics extends StatelessWidget {
   const Analytics({super.key});
@@ -71,6 +73,9 @@ class Analytics extends StatelessWidget {
       "Nov",
       "Dec",
     ];
+    // This is where data comes from provider in real app
+
+    final summary = context.watch<TransactionProvider>().summary;
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -108,23 +113,22 @@ class Analytics extends StatelessWidget {
                   child: PieChart(
                     PieChartData(
                       centerSpaceRadius: 40,
-                      sectionsSpace: 2,
 
                       // You can add pie chart sections here
-                      sections: [
+                      sections: summary.getPieChartData.entries.map((entry) {
                         PieChartSectionData(
                           value: totalIncome,
                           color: Colors.green,
                           title: 'Income',
                           radius: 80,
                         ),
-                        PieChartSectionData(
-                          value: totalExpense,
-                          color: Colors.red,
-                          title: 'Expense',
-                          radius: 80,
-                        ),
-                      ],
+                        // PieChartSectionData(
+                        //   value: totalExpense,
+                        //   color: Colors.red,
+                        //   title: 'Expense',
+                        //   radius: 80,
+                        // ),
+                      }).toList(),
                     ),
                     duration: Duration(milliseconds: 700), // Optional
                     curve: Curves.easeInBack, // Optional

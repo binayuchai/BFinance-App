@@ -15,6 +15,8 @@ class TransactionSummary {
     double income = 0.0;
     double expenses = 0.0;
 
+    // Calculate total income and expenses
+
     for (var tx in transactions) {
       if (tx.type == TransactionType.income) {
         income += tx.amount;
@@ -24,5 +26,24 @@ class TransactionSummary {
     }
 
     return TransactionSummary(totalIncome: income, totalExpenses: expenses);
+  }
+
+  /*        
+Method for Pie Chart Data
+ [Current Month's Expenses by Category]
+
+  */
+  Map<int, double> get getPieChartData {
+    Map<int, double> data = {};
+    DateTime now = DateTime.now();
+    for (final tx in transactions) {
+      final date = DateTime.parse(tx.date); // Parse the date string to DateTime
+      if (tx.type == TransactionType.expense &&
+          date.month == now.month &&
+          date.year == now.year) {
+        data[tx.category] = (data[tx.category] ?? 0) + tx.amount;
+      }
+    }
+    return data;
   }
 }
