@@ -56,6 +56,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       time: DateTime.now().toString(),
       note: _noteController.text == "" ? null : _noteController.text,
       category: categoryProvider.selectedCategoryId ?? 1,
+
+
     );
 
     //Prepare the data to be sent
@@ -69,10 +71,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     // };
 
     try {
-      
-      final response = await context.read<TransactionProvider>().addTransactionProvider(
-        transaction_data,
-      );
+      final response = await context
+          .read<TransactionProvider>()
+          .addTransactionProvider(transaction_data);
 
       if (!mounted) return;
 

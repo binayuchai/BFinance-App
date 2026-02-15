@@ -1,12 +1,17 @@
+import 'package:bfinance/features/category/category.dart';
 import 'package:bfinance/features/dashboard/models/transaction.dart';
-import 'package:flutter/material.dart';
 
 class TransactionSummary {
   final double totalIncome;
   final double totalExpenses;
+  final List<Transaction> transactions;
 
   // Constructor to access the fields data
-  TransactionSummary({required this.totalIncome, required this.totalExpenses});
+  TransactionSummary({
+    required this.totalIncome,
+    required this.totalExpenses,
+    required this.transactions,
+  });
 
   double get netBalance => totalIncome - totalExpenses;
 
@@ -25,7 +30,11 @@ class TransactionSummary {
       }
     }
 
-    return TransactionSummary(totalIncome: income, totalExpenses: expenses);
+    return TransactionSummary(
+      totalIncome: income,
+      totalExpenses: expenses,
+      transactions: transactions,
+    );
   }
 
   /*        
@@ -33,15 +42,15 @@ Method for Pie Chart Data
  [Current Month's Expenses by Category]
 
   */
-  Map<int, double> get getPieChartData {
-    Map<int, double> data = {};
+  Map<String, double> get getPieChartData {
+    Map<String, double> data = {};
     DateTime now = DateTime.now();
     for (final tx in transactions) {
       final date = DateTime.parse(tx.date); // Parse the date string to DateTime
       if (tx.type == TransactionType.expense &&
           date.month == now.month &&
           date.year == now.year) {
-        data[tx.category] = (data[tx.category] ?? 0) + tx.amount;
+        data[tx.categoryName] = (data[tx.categoryName] ?? 0) + tx.amount;
       }
     }
     return data;

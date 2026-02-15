@@ -1,3 +1,4 @@
+import 'package:bfinance/features/category/category.dart';
 import 'package:flutter/material.dart';
 
 enum TransactionType { income, expense } // Added enum for transaction type
@@ -5,6 +6,7 @@ enum TransactionType { income, expense } // Added enum for transaction type
 class Transaction {
   final int? id;
   final int category;
+  final String? categoryName; // Added category name field
   final String title; // e.g., "Salary", "Groceries"
   final String date;
   final double amount;
@@ -22,6 +24,7 @@ class Transaction {
     required this.amount,
     required this.type,
     required this.time,
+    this.categoryName, // Initialize category name
     this.paymentMethod,
     this.note,
     this.icon,
@@ -41,6 +44,8 @@ class Transaction {
           : TransactionType.expense,
       note: json['description'] ?? '',
       category: json['category'],
+      categoryName: json['category_name'] ?? '',
+
       date: (json['created_at']),
       time: json['time'] ?? '',
     );
@@ -62,45 +67,45 @@ class Transaction {
 
 // Function to convert JSON  to Model(GET from API)
 
-final List<Transaction> transactions = [
-  Transaction(
-    id: 1,
-    title: "Salary",
-    date: "2025-08-01",
-    amount: 3000.00,
-    type: TransactionType.income,
-    icon: const Icon(Icons.wallet, color: Colors.blue),
-    time: "10:00 AM",
-    category: 1,
-  ),
-  Transaction(
-    id: 2,
-    title: "Groceries",
-    date: "2025-08-05",
-    amount: 150.75,
-    type: TransactionType.expense,
-    icon: const Icon(Icons.medical_services, color: Colors.teal),
-    time: "2:30 PM",
-    category: 4,
-  ),
-  Transaction(
-    id: 3,
-    title: "Electricity Bill",
-    date: "2025-08-10",
-    amount: 80.50,
-    type: TransactionType.expense,
-    icon: const Icon(Icons.electric_bolt, color: Colors.blue),
-    time: "9:00 AM",
-    category: 6,
-  ),
-  Transaction(
-    id: 4,
-    title: "Freelance Project",
-    date: "2025-08-15",
-    amount: 500.00,
-    type: TransactionType.income,
-    icon: const Icon(Icons.attach_money, color: Colors.green),
-    time: "1:00 PM",
-    category: 2,
-  ),
-];
+// final List<Transaction> transactions = [
+//   Transaction(
+//     id: 1,
+//     title: "Salary",
+//     date: "2025-08-01",
+//     amount: 3000.00,
+//     type: TransactionType.income,
+//     icon: const Icon(Icons.wallet, color: Colors.blue),
+//     time: "10:00 AM",
+//     category: 1,
+//   ),
+//   Transaction(
+//     id: 2,
+//     title: "Groceries",
+//     date: "2025-08-05",
+//     amount: 150.75,
+//     type: TransactionType.expense,
+//     icon: const Icon(Icons.medical_services, color: Colors.teal),
+//     time: "2:30 PM",
+//     category: 4,
+//   ),
+//   Transaction(
+//     id: 3,
+//     title: "Electricity Bill",
+//     date: "2025-08-10",
+//     amount: 80.50,
+//     type: TransactionType.expense,
+//     icon: const Icon(Icons.electric_bolt, color: Colors.blue),
+//     time: "9:00 AM",
+//     category: 6,
+//   ),
+//   Transaction(
+//     id: 4,
+//     title: "Freelance Project",
+//     date: "2025-08-15",
+//     amount: 500.00,
+//     type: TransactionType.income,
+//     icon: const Icon(Icons.attach_money, color: Colors.green),
+//     time: "1:00 PM",
+//     category: 2,
+//   ),
+// ];

@@ -1,4 +1,5 @@
 import 'package:bfinance/providers/transaction_provider.dart';
+import 'package:bfinance/utils/category_color.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
@@ -76,6 +77,7 @@ class Analytics extends StatelessWidget {
     // This is where data comes from provider in real app
 
     final summary = context.watch<TransactionProvider>().summary;
+    print("Summary: ${summary.getPieChartData}");
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -116,12 +118,15 @@ class Analytics extends StatelessWidget {
 
                       // You can add pie chart sections here
                       sections: summary.getPieChartData.entries.map((entry) {
-                        PieChartSectionData(
-                          value: totalIncome,
-                          color: Colors.green,
-                          title: 'Income',
-                          radius: 80,
-                        ),
+                        return PieChartSectionData(
+                          value: entry.value, // Handle null values
+                          color: CategoryColorHelper.getColorForCategory(
+                            entry.key, // Use category ID for color mapping
+                          ),
+                          title:entry.key ?? "Unknown", // Display category name as title
+                          ),
+                          radius: 70,
+                        );
                         // PieChartSectionData(
                         //   value: totalExpense,
                         //   color: Colors.red,
@@ -130,8 +135,8 @@ class Analytics extends StatelessWidget {
                         // ),
                       }).toList(),
                     ),
-                    duration: Duration(milliseconds: 700), // Optional
-                    curve: Curves.easeInBack, // Optional
+                    // duration: Duration(milliseconds: 700), // Optional
+                    // curve: Curves.easeInBack, // Optional
                   ),
                 ),
                 const SizedBox(height: 20),
