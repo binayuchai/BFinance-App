@@ -78,6 +78,24 @@ class Analytics extends StatelessWidget {
 
     final summary = context.watch<TransactionProvider>().summary;
     print("Summary: ${summary.getPieChartData}");
+    // Check if there's no data
+    if (summary.getPieChartData.isEmpty) {
+      return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text("Finance Analytics"),
+            bottom: const TabBar(
+              tabs: [
+                Tab(text: "Weekly"),
+                Tab(text: "Monthly"),
+              ],
+            ),
+          ),
+          body: const Center(child: Text("No expense data available.")),
+        ),
+      );
+    }
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -90,6 +108,7 @@ class Analytics extends StatelessWidget {
             ],
           ),
         ),
+
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -118,13 +137,21 @@ class Analytics extends StatelessWidget {
 
                       // You can add pie chart sections here
                       sections: summary.getPieChartData.entries.map((entry) {
+                        // Truncate category name if too long
+                        String displayName = entry.key.length > 8
+                            ? '${entry.key.substring(0, 8)}...'
+                            : entry.key;
+                        double percentage =
+                            (entry.value / summary.totalExpenses) * 100;
+
                         return PieChartSectionData(
                           value: entry.value, // Handle null values
-                          color: CategoryColorHelper.getColorForCategory(
+                          color: CategoryColorHelper.getColorForCategoryName(
                             entry.key, // Use category ID for color mapping
                           ),
-                          title:entry.key ?? "Unknown", // Display category name as title
-                          ),
+                          title:
+                              '${displayName} (${percentage.toStringAsFixed(1)}%)', // Display truncated category name as title with percentage
+
                           radius: 70,
                         );
                         // PieChartSectionData(

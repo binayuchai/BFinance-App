@@ -22,7 +22,9 @@ class _CategoryExpensesState extends State<CategoryExpenses> {
         .transactions
         .where((tx) => !tx.isIncome)
         .toList();
-
+    if (expenseTransactions.isEmpty) {
+      return Center(child: Text("No expense transactions yet"));
+    }
     return ListView.builder(
       itemCount: expenseTransactions.length,
 

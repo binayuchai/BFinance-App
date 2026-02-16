@@ -21,4 +21,10 @@ class CategoryColorHelper {
   static Color getColorForCategory(int categoryId) {
     return _colors[categoryId % _colors.length];
   }
+
+  // Method to get color based on category name (if needed)
+  static Color getColorForCategoryName(String categoryName) {
+    int hash = categoryName.hashCode.abs(); // Get absolute value of hash code
+    return _colors[hash % _colors.length];
+  }
 }

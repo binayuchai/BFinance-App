@@ -47,6 +47,10 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     }
 
     final categoryProvider = context.read<CategoryProvider>();
+    final findCategoryName = categoryProvider.categories.firstWhere(
+      (cat) => cat.id == categoryProvider.selectedCategoryId,
+      orElse: () => categoryProvider.categories.first,
+    );
     final Transaction transaction_data = Transaction(
       id: null,
       title: _titleController.text,
@@ -56,8 +60,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       time: DateTime.now().toString(),
       note: _noteController.text == "" ? null : _noteController.text,
       category: categoryProvider.selectedCategoryId ?? 1,
-
-
+      categoryName: findCategoryName.name,
     );
 
     //Prepare the data to be sent

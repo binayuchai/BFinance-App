@@ -34,6 +34,7 @@ class Transaction {
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     final typStr = (json['transaction_type'] ?? '').toString().toLowerCase();
+    print("Parsing transaction: $json, determined type: $typStr");
 
     return Transaction(
       id: json['id'],
@@ -44,7 +45,7 @@ class Transaction {
           : TransactionType.expense,
       note: json['description'] ?? '',
       category: json['category'],
-      categoryName: json['category_name'] ?? '',
+      categoryName: json['category_detail'] ?? '',
 
       date: (json['created_at']),
       time: json['time'] ?? '',

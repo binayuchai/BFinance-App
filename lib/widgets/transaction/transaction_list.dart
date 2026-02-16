@@ -56,6 +56,9 @@ class _TransactionListState extends State<TransactionList> {
     }
 
     final transactions = transactionProvider.transactions;
+    if (transactions.isEmpty) {
+      return Center(child: Text("No transactions found."));
+    }
     return ListView.builder(
       itemCount: transactions.length,
       itemBuilder: (context, index) {

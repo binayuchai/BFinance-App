@@ -50,9 +50,18 @@ Method for Pie Chart Data
       if (tx.type == TransactionType.expense &&
           date.month == now.month &&
           date.year == now.year) {
-        data[tx.categoryName] = (data[tx.categoryName] ?? 0) + tx.amount;
+        print(
+          "Processing transaction: ${tx.title}, Amount: ${tx.amount}, Category: ${tx.categoryName}, Date: ${tx.date}",
+        );
+        String categoryKey =
+            (tx.categoryName != null && tx.categoryName!.isNotEmpty)
+            ? tx.categoryName!
+            : 'Uncategorized'; // Use category name or "Unknown" if null
+        data[categoryKey] = (data[categoryKey] ?? 0) + tx.amount;
       }
     }
+    print("Final data: $data");
+
     return data;
   }
 }
