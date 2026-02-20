@@ -64,4 +64,33 @@ Method for Pie Chart Data
 
     return data;
   }
+
+  // Method to get weekly expenses
+  List<double> get getWeeklyExpenses {
+    List<double> weeklyExpense = List.filled(7, 0.0);
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    for (final tx in transactions) {
+      final date = DateTime.parse(tx.date); // Parse the date string to DateTime
+      if (tx.type == TransactionType.expense && date.isAfter(startOfWeek)) {
+        int dayIndex = date.weekday - 1; // converting to 0-based index
+        weeklyExpense[dayIndex] += tx.amount;
+      }
+    }
+    return weeklyExpense;
+  }
+
+  // Method to get monthly expenses
+  List<double> get getMonthlyExpenses {
+    List<double> monthlyExpense = List.filled(12, 0.0);
+    final currentYear = DateTime.now().year;
+    for (final tx in transactions) {
+      final date = DateTime.parse(tx.date); // Parse the date string to DateTime
+      if (tx.type == TransactionType.expense && date.year == currentYear) {
+        int monthIndex = date.month - 1; // converting to 0-based index
+        monthlyExpense[monthIndex] += tx.amount;
+      }
+    }
+    return monthlyExpense;
+  }
 }

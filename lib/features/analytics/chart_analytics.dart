@@ -19,6 +19,7 @@ class Analytics extends StatelessWidget {
             isCurved: true,
             barWidth: 3,
             color: Colors.blue,
+            dotData: FlDotData(show: true), // Show dots on data points
           ),
         ],
         titlesData: FlTitlesData(
@@ -42,24 +43,12 @@ class Analytics extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double totalIncome = 500;
-    double totalExpense = 3000;
+    final summary = context.watch<TransactionProvider>().summary;
+
+    double totalExpense = summary.totalExpenses;
     final List<String> days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    final List<double> dailyExpenses = [500, 300, 400, 200, 600, 700, 800];
-    final List<double> monthlyExpenses = [
-      400,
-      600,
-      500,
-      700,
-      800,
-      900,
-      1000,
-      1100,
-      1200,
-      1300,
-      1400,
-      1500,
-    ];
+    final List<double> dailyExpenses = summary.getWeeklyExpenses;
+    final List<double> monthlyExpenses = summary.getMonthlyExpenses;
     final List<String> months = [
       "Jan",
       "Feb",
@@ -76,7 +65,6 @@ class Analytics extends StatelessWidget {
     ];
     // This is where data comes from provider in real app
 
-    final summary = context.watch<TransactionProvider>().summary;
     print("Summary: ${summary.getPieChartData}");
     // Check if there's no data
     if (summary.getPieChartData.isEmpty) {
@@ -114,13 +102,13 @@ class Analytics extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                Text(
-                  "Total Income: \$${totalIncome.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                // Text(
+                //   "Total Income: \$${totalIncome.toStringAsFixed(2)}",
+                //   style: const TextStyle(
+                //     fontSize: 18,
+                //     fontWeight: FontWeight.bold,
+                //   ),
+                // ),
                 Text(
                   "Total Expense: \$${totalExpense.toStringAsFixed(2)}",
                   style: const TextStyle(
