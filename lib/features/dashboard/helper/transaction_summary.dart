@@ -69,10 +69,18 @@ Method for Pie Chart Data
   List<double> get getWeeklyExpenses {
     List<double> weeklyExpense = List.filled(7, 0.0);
     final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final startOfWeek = DateTime(now.year, now.month, now.day).subtract(
+      Duration(days: now.weekday - 1), // handles month boundaries correctly. now.day - (now.weekday - 1)= 2 - 6 = -4  ← Invalid day!
+    ); // Get the start of the week (Monday) at 00:00:00
+
+    final endOfWeek = startOfWeek.add(
+      const Duration(days: 7),
+    ); // End of the week (next Monday) at 00:00:00
     for (final tx in transactions) {
       final date = DateTime.parse(tx.date); // Parse the date string to DateTime
-      if (tx.type == TransactionType.expense && date.isAfter(startOfWeek)) {
+      if (tx.type == TransactionType.expense &&
+          !date.isBefore(startOfWeek) &&
+          date.isBefore(endOfWeek)) {
         int dayIndex = date.weekday - 1; // converting to 0-based index
         weeklyExpense[dayIndex] += tx.amount;
       }
@@ -83,6 +91,16 @@ Method for Pie Chart Data
   // Method to get monthly expenses
   List<double> get getMonthlyExpenses {
     List<double> monthlyExpense = List.filled(12, 0.0);
+    final startOfYear = DateTime(
+      DateTime.now().year,
+      1,
+      1,
+    ); // Start of the year
+    final endOfYear = DateTime(
+      DateTime.now().year + 1,
+      1,
+      1,
+    ); // End of the year
     final currentYear = DateTime.now().year;
     for (final tx in transactions) {
       final date = DateTime.parse(tx.date); // Parse the date string to DateTime

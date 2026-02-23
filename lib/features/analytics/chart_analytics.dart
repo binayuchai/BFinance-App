@@ -3,6 +3,7 @@ import 'package:bfinance/utils/category_color.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
+import 'helper/format_currency.dart';
 
 class Analytics extends StatelessWidget {
   const Analytics({super.key});
@@ -23,6 +24,21 @@ class Analytics extends StatelessWidget {
           ),
         ],
         titlesData: FlTitlesData(
+          // Configure left titles (Y-axis)
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: null,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  ChartHelper.formatCurrency(
+                    value,
+                  ), // Format Y-axis values as currency
+                  style: const TextStyle(fontSize: 10),
+                );
+              },
+            ),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
