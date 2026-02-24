@@ -19,6 +19,7 @@ class Analytics extends StatelessWidget {
             ),
             isCurved: true,
             barWidth: 3,
+            preventCurveOverShooting: true,
             color: Colors.blue,
             dotData: FlDotData(show: true), // Show dots on data points
           ),
@@ -53,6 +54,59 @@ class Analytics extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildWeeklyBarChart(List<double> values, List<String> labels) {
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        barTouchData: BarTouchData(enabled: true),
+
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                int index = value.toInt();
+                if (index < labels.length) {
+                  return Text(labels[index]);
+                } else {
+                  return const Text("");
+                }
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  ChartHelper.formatCurrency(value),
+                  style: const TextStyle(fontSize: 10),
+                );
+              },
+            ),
+          ),
+        ),
+
+        borderData: FlBorderData(show: false),
+        gridData: FlGridData(show: true),
+
+        barGroups: List.generate(values.length, (index) {
+          return BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: values[index] < 0 ? 0 : values[index],
+                color: Colors.blue,
+                width: 16,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -175,7 +229,7 @@ class Analytics extends StatelessWidget {
                   height: 250,
                   child: TabBarView(
                     children: [
-                      buildLineChart(dailyExpenses, days),
+                      buildWeeklyBarChart(dailyExpenses, days),
 
                       buildLineChart(monthlyExpenses, months),
                     ],
