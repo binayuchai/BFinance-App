@@ -1,115 +1,12 @@
+import 'package:bfinance/features/analytics/widgets/weekly_chart.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
-import 'package:bfinance/utils/category_color.dart';
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
-import 'helper/format_currency.dart';
+import 'widgets/pie_chart.dart';
+import 'widgets/monthly_chart.dart';
 
 class Analytics extends StatelessWidget {
   const Analytics({super.key});
-
-  Widget buildLineChart(List<double> values, List<String> labels) {
-    return LineChart(
-      LineChartData(
-        lineBarsData: [
-          LineChartBarData(
-            spots: List.generate(
-              values.length,
-              (index) => FlSpot(index.toDouble(), values[index]),
-            ),
-            isCurved: true,
-            barWidth: 3,
-            preventCurveOverShooting: true,
-            color: Colors.blue,
-            dotData: FlDotData(show: true), // Show dots on data points
-          ),
-        ],
-        titlesData: FlTitlesData(
-          // Configure left titles (Y-axis)
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: null,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  ChartHelper.formatCurrency(
-                    value,
-                  ), // Format Y-axis values as currency
-                  style: const TextStyle(fontSize: 10),
-                );
-              },
-            ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                int index = value.toInt();
-                if (index < labels.length) {
-                  return Text(labels[index]);
-                } else {
-                  return const Text("");
-                }
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildWeeklyBarChart(List<double> values, List<String> labels) {
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        barTouchData: BarTouchData(enabled: true),
-
-        titlesData: FlTitlesData(
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                int index = value.toInt();
-                if (index < labels.length) {
-                  return Text(labels[index]);
-                } else {
-                  return const Text("");
-                }
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  ChartHelper.formatCurrency(value),
-                  style: const TextStyle(fontSize: 10),
-                );
-              },
-            ),
-          ),
-        ),
-
-        borderData: FlBorderData(show: false),
-        gridData: FlGridData(show: true),
-
-        barGroups: List.generate(values.length, (index) {
-          return BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                toY: values[index] < 0 ? 0 : values[index],
-                color: Colors.blue,
-                width: 16,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ],
-          );
-        }),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +34,7 @@ class Analytics extends StatelessWidget {
 
     print("Summary: ${summary.getPieChartData}");
     // Check if there's no data
-    if (summary.getPieChartData.isEmpty) {
+    if (summary.totalExpenses == 0) {
       return DefaultTabController(
         length: 2,
         child: Scaffold(
@@ -157,86 +54,53 @@ class Analytics extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Finance Analytics"),
-          bottom: TabBar(
-            tabs: const [
-              Tab(text: "Weekly"),
-              Tab(text: "Monthly"),
-            ],
-          ),
-        ),
+        appBar: AppBar(title: const Text("Finance Analytics")),
 
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Text(
-                //   "Total Income: \$${totalIncome.toStringAsFixed(2)}",
-                //   style: const TextStyle(
-                //     fontSize: 18,
-                //     fontWeight: FontWeight.bold,
-                //   ),
-                // ),
-                Text(
-                  "Total Expense: \$${totalExpense.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Text(
+              //   "Total Income: \$${totalIncome.toStringAsFixed(2)}",
+              //   style: const TextStyle(
+              //     fontSize: 18,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
+              Text(
+                "Total Expense: \$${totalExpense.toStringAsFixed(2)}",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 200,
-                  child: PieChart(
-                    PieChartData(
-                      centerSpaceRadius: 40,
-
-                      // You can add pie chart sections here
-                      sections: summary.getPieChartData.entries.map((entry) {
-                        // Truncate category name if too long
-                        String displayName = entry.key.length > 8
-                            ? '${entry.key.substring(0, 8)}...'
-                            : entry.key;
-                        double percentage =
-                            (entry.value / summary.totalExpenses) * 100;
-
-                        return PieChartSectionData(
-                          value: entry.value, // Handle null values
-                          color: CategoryColorHelper.getColorForCategoryName(
-                            entry.key, // Use category ID for color mapping
-                          ),
-                          title:
-                              '${displayName} (${percentage.toStringAsFixed(1)}%)', // Display truncated category name as title with percentage
-
-                          radius: 70,
-                        );
-                        // PieChartSectionData(
-                        //   value: totalExpense,
-                        //   color: Colors.red,
-                        //   title: 'Expense',
-                        //   radius: 80,
-                        // ),
-                      }).toList(),
-                    ),
-                    // duration: Duration(milliseconds: 700), // Optional
-                    // curve: Curves.easeInBack, // Optional
-                  ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 220,
+                child: ExpenseDonutChart(
+                  pieData: summary.getPieChartData,
+                  summary: summary,
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 250,
-                  child: TabBarView(
-                    children: [
-                      buildWeeklyBarChart(dailyExpenses, days),
+              ),
 
-                      buildLineChart(monthlyExpenses, months),
-                    ],
-                  ),
+              const SizedBox(height: 20),
+              TabBar(
+                tabs: const [
+                  Tab(text: "Weekly"),
+                  Tab(text: "Monthly"),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    WeeklyChart(values: dailyExpenses, labels: days),
+
+                    MonthlyChart(values: monthlyExpenses, labels: months),
+                  ],
                 ),
+              ),
 
-                /* SizedBox(
+              /* SizedBox(
                   height: 250,
                   child: BarChart(
                     BarChartData(
@@ -280,8 +144,7 @@ class Analytics extends StatelessWidget {
                     curve: Curves.easeInBack, // Optional
                   ),
                 ),  */
-              ],
-            ),
+            ],
           ),
         ),
       ),

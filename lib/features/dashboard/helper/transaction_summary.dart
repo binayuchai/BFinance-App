@@ -45,8 +45,21 @@ Method for Pie Chart Data
   Map<String, double> get getPieChartData {
     Map<String, double> data = {};
     DateTime now = DateTime.now();
+    print("Data of transactions: ${transactions.length}");
+
     for (final tx in transactions) {
-      final date = DateTime.parse(tx.date); // Parse the date string to DateTime
+      // API returns date in UTC (e.g. 2026-02-28T11:13:02Z)
+      // DateTime.now() is in local timezone (JST).
+      // Without toLocal(), month/year comparison may fail near month boundaries.
+      final date = DateTime.parse(
+        tx.date,
+      ).toLocal(); // Parse the date string to DateTime
+
+      print("Now: $now  month: ${now.month}  year: ${now.year}");
+      print("Transaction month: ${date.month}  year: ${date.year}");
+      print(
+        "date of transaction: ${tx.date}, parsed date: $date, category: ${tx.categoryName}, amount: ${tx.amount}, type: ${tx.type}",
+      );
       if (tx.type == TransactionType.expense &&
           date.month == now.month &&
           date.year == now.year) {
@@ -58,6 +71,9 @@ Method for Pie Chart Data
             ? tx.categoryName!
             : 'Uncategorized'; // Use category name or "Unknown" if null
         data[categoryKey] = (data[categoryKey] ?? 0) + tx.amount;
+        print(
+          "Updated category: $categoryKey, Total Amount: ${data[categoryKey]}",
+        );
       }
     }
     print("Final data: $data");
@@ -70,7 +86,9 @@ Method for Pie Chart Data
     List<double> weeklyExpense = List.filled(7, 0.0);
     final now = DateTime.now();
     final startOfWeek = DateTime(now.year, now.month, now.day).subtract(
-      Duration(days: now.weekday - 1), // handles month boundaries correctly. now.day - (now.weekday - 1)= 2 - 6 = -4  ← Invalid day!
+      Duration(
+        days: now.weekday - 1,
+      ), // handles month boundaries correctly. now.day - (now.weekday - 1)= 2 - 6 = -4  ← Invalid day!
     ); // Get the start of the week (Monday) at 00:00:00
 
     final endOfWeek = startOfWeek.add(
