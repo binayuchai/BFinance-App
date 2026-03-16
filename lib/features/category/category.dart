@@ -1,9 +1,25 @@
 import 'package:bfinance/features/category/widgets/expense.dart';
 import 'package:bfinance/features/category/widgets/income.dart';
+import 'package:bfinance/providers/category_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Category extends StatelessWidget {
   const Category({super.key});
+
+  Future<bool> _addCategory(BuildContext context, String name) async {
+    // Implement the logic to add category to the database
+    print("Adding category: $name");
+    try {
+      final response = await context
+          .read<CategoryProvider>()
+          .addCategoryProvider(name);
+      return response;
+    } catch (e) {
+      print("Error adding category: $e");
+      return false;
+    }
+  }
 
   void _showAddCategoryDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
@@ -35,6 +51,12 @@ class Category extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
+              if (formKey.currentState!.validate()) {
+                _addCategory(context, categoryController.text);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Category added successfully")),
+                );
+              }
               Navigator.pop(context);
             },
             child: const Text("Add"),

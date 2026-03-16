@@ -45,4 +45,27 @@ class CategoryService {
       return [];
     }
   }
+
+  // POST Category to API
+  Future<bool> addCategory(Category category) async {
+    try {
+      final headers = await api.authHeaders();
+      final response = await http.post(
+        body: jsonEncode(category.categoryToJson()),
+        headers: headers,
+        Uri.parse(apiUrl),
+      );
+
+      if (response.statusCode == 201) {
+        print("Category added successfully.");
+        return true;
+      } else {
+        print("Failed to add category. Status code: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("Error adding category: $e");
+      return false;
+    }
+  }
 }

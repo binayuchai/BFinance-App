@@ -23,9 +23,12 @@ class TransactionSummary {
     // Calculate total income and expenses
 
     for (var tx in transactions) {
+      final date = DateTime.parse(tx.date).toLocal();
       if (tx.type == TransactionType.income) {
         income += tx.amount;
-      } else {
+      } else if (tx.type == TransactionType.expense &&
+          date.year == DateTime.now().year) {
+        // Only consider expenses for the current year
         expenses += tx.amount;
       }
     }

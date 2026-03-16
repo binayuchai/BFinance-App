@@ -62,6 +62,27 @@ class CategoryProvider extends ChangeNotifier {
     }
   }
 
+  // Add a new category and refresh the list
+  Future<bool> addCategoryProvider(Category category) async {
+    try {
+      final category_service = CategoryService();
+      final success = await category_service.addCategory(category);
+      if (success) {
+        // Refresh the category list
+        await fetchCategories();
+      } else {
+        _error = "Failed to add category";
+        notifyListeners();
+      }
+      return success;
+    } catch (e) {
+      print("Error adding category: $e");
+      _error = "Failed to add category: $e";
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Ensure categories are loaded
   Future<void> ensureLoaded() async {
     await fetchCategories();

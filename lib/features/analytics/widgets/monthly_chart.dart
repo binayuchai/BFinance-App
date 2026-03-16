@@ -10,13 +10,36 @@ class MonthlyChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 250,
+      height: 260,
       child: LineChart(
         LineChartData(
           minY: 0,
           minX: 0,
           maxX: (values.length - 1)
               .toDouble(), // Set maxX based on the number of data points
+          // maxY: (values.isEmpty
+          //     ? 100
+          //     : (values.reduce((a, b) => a > b ? a : b) *
+          //           1.1)), // Add 10% padding to maxY
+          maxY: (values.isEmpty
+              ? 100
+              : (values.fold(0.0, (a, b) => a > b ? a : b) *
+                    1.2)), // Add 20% padding to maxY for better visualization
+          clipData: FlClipData(
+            top: false,
+            bottom: true,
+            left: true,
+            right: true,
+          ), // Prevent area from extending below x-axis
+          gridData: FlGridData(
+            //controls the visual grid lines displayed on the chart
+            // Show grid lines
+            show: true,
+            drawVerticalLine: true, // Show vertical grid lines
+            drawHorizontalLine: true, // Show horizontal grid lines
+            horizontalInterval: 200000, // Set horizontal grid line interval
+            verticalInterval: null,
+          ),
           lineBarsData: [
             LineChartBarData(
               spots: List.generate(
@@ -53,17 +76,32 @@ class MonthlyChart extends StatelessWidget {
             ),
           ],
           titlesData: FlTitlesData(
+            //Configure for right titles (Y-axis)
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: false, // Hide right Y-axis titles
+              ),
+            ),
             // Configure left titles (Y-axis)
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 interval: null,
+                reservedSize: 60, // Reserve space to prevent overlap
                 getTitlesWidget: (value, meta) {
-                  return Text(
-                    ChartHelper.formatCurrency(
-                      value,
-                    ), // Format Y-axis values as currency
-                    style: const TextStyle(fontSize: 10),
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Text(
+                      ChartHelper.formatCurrency(
+                        value,
+                      ), // Format Y-axis values as currency
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
                   );
                 },
               ),
@@ -71,10 +109,22 @@ class MonthlyChart extends StatelessWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                interval: 1,
+                // reservedSize: 40, // Reserve space for month labels
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
                   if (index < labels.length) {
-                    return Text(labels[index]);
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        labels[index],
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    );
                   } else {
                     return const Text("");
                   }

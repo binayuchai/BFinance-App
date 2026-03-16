@@ -58,7 +58,8 @@ class Analytics extends StatelessWidget {
 
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
+          child: ListView(
+            // Use ListView for better scrolling on smaller screens
             children: [
               // Text(
               //   "Total Income: \$${totalIncome.toStringAsFixed(2)}",
@@ -67,13 +68,13 @@ class Analytics extends StatelessWidget {
               //     fontWeight: FontWeight.bold,
               //   ),
               // ),
-              Text(
-                "Total Expense: \$${totalExpense.toStringAsFixed(2)}",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // Text(
+              //   "Total Expense: \$${totalExpense.toStringAsFixed(2)}",
+              //   style: const TextStyle(
+              //     fontSize: 18,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
               const SizedBox(height: 20),
               SizedBox(
                 height: 220,
@@ -90,7 +91,8 @@ class Analytics extends StatelessWidget {
                   Tab(text: "Monthly"),
                 ],
               ),
-              Expanded(
+              SizedBox(
+                height: 300, //  height for better display of charts
                 child: TabBarView(
                   children: [
                     WeeklyChart(values: dailyExpenses, labels: days),
