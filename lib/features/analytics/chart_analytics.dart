@@ -12,7 +12,7 @@ class Analytics extends StatelessWidget {
   Widget build(BuildContext context) {
     final summary = context.watch<TransactionProvider>().summary;
 
-    double totalExpense = summary.totalExpenses;
+    // double totalExpense = summary.totalExpenses;
     final List<String> days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     final List<double> dailyExpenses = summary.getWeeklyExpenses;
     final List<double> monthlyExpenses = summary.getMonthlyExpenses;

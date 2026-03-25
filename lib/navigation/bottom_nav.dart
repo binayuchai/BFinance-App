@@ -4,7 +4,7 @@ import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
 import 'package:bfinance/features/dashboard/view/widgets/transaction.dart';
 import 'package:bfinance/providers/category_provider.dart';
-import 'package:bfinance/providers/transaction_provider.dart';
+
 import 'package:bfinance/widgets/forms/transaction_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

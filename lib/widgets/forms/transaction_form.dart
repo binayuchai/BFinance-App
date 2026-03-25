@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:bfinance/features/category/widgets/add_category.dart';
+import 'package:bfinance/features/category/widgets/category_grid.dart';
 import 'package:bfinance/features/dashboard/models/transaction.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
-import 'package:bfinance/services/transaction_service.dart';
 
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/category_provider.dart';
@@ -28,6 +29,26 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   //Defining the Error variable
   String? _amountError;
 
+  //Push to create category screen
+
+  Future<void> _openCreateCategoryScreen() async {
+    // Implement navigation to create category screen
+    // For example, using Navigator.push:
+    // final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateCategoryScreen()));
+    // if (result == true) {
+    //   // Refresh categories if a new one was added
+    //   context.read<CategoryProvider>().fetchCategories();
+    // }
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddCategory()),
+    );
+    if (result == true) {
+      // Refresh categories if a new one was added
+      context.read<CategoryProvider>().fetchCategories();
+    }
+  }
+
   // Implement the logic to add transaction to the database
   Future<void> _addTransaction() async {
     setState(() {
@@ -50,8 +71,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final findCategoryName = categoryProvider.categories.firstWhere(
       (cat) => cat.id == categoryProvider.selectedCategoryId,
       orElse: () => categoryProvider.categories.first,
-    );
-    final Transaction transaction_data = Transaction(
+    ); // Fallback to first category if not found
+
+    final Transaction transactionData = Transaction(
       id: null,
       title: _titleController.text,
       date: DateTime.now().toString(),
@@ -76,7 +98,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     try {
       final response = await context
           .read<TransactionProvider>()
-          .addTransactionProvider(transaction_data);
+          .addTransactionProvider(transactionData);
 
       if (!mounted) return;
 
@@ -170,30 +192,37 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               ),
               const SizedBox(height: 16.0),
 
-              DropdownButtonFormField<int>(
-                initialValue: categoryProvider
-                    .selectedCategoryId, // Set the initial selected value
-                items: categoryProvider.categories
-                    .map(
-                      (e) => DropdownMenuItem<int>(
-                        value: e.id,
-                        child: Text(e.name),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (newValue) {
-                  // Handle category selection
-                  categoryProvider.setSelectedCategoryId(newValue);
-                },
-
-                decoration: const InputDecoration(
-                  labelText: "Category",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null ? "Please enter category" : null,
+              // Category Dropdown
+              CategoryGrid(
+                categories: categoryProvider.categories,
+                selectedCategoryId: categoryProvider.selectedCategoryId,
+                onCategorySelected: categoryProvider.setSelectedCategoryId,
+                onAddCategory: () => _openCreateCategoryScreen(),
               ),
 
+              // DropdownButtonFormField<int>(
+              //   initialValue: categoryProvider
+              //       .selectedCategoryId, // Set the initial selected value
+              //   items: categoryProvider.categories
+              //       .map(
+              //         (e) => DropdownMenuItem<int>(
+              //           value: e.id,
+              //           child: Text(e.name),
+              //         ),
+              //       )
+              //       .toList(),
+              //   onChanged: (newValue) {
+              //     // Handle category selection
+              //     categoryProvider.setSelectedCategoryId(newValue);
+              //   },
+
+              //   decoration: const InputDecoration(
+              //     labelText: "Category",
+              //     border: OutlineInputBorder(),
+              //   ),
+              //   validator: (value) =>
+              //       value == null ? "Please enter category" : null,
+              // ),
               const SizedBox(height: 16.0),
 
               TextFormField(
