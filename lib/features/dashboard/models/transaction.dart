@@ -1,7 +1,4 @@
-
 import 'package:flutter/material.dart';
-
-enum TransactionType { income, expense } // Added enum for transaction type
 
 class Transaction {
   final int? id;
@@ -10,7 +7,6 @@ class Transaction {
   final String title; // e.g., "Salary", "Groceries"
   final String date;
   final double amount;
-  final TransactionType type;
   final String time;
   final String? paymentMethod;
   final String? note;
@@ -22,15 +18,12 @@ class Transaction {
     required this.category,
     required this.date,
     required this.amount,
-    required this.type,
     required this.time,
     this.categoryName, // Initialize category name
     this.paymentMethod,
     this.note,
     this.icon,
   });
-  bool get isIncome =>
-      type == TransactionType.income; // Helper getter to check if it's income
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     final typStr = (json['transaction_type'] ?? '').toString().toLowerCase();
@@ -40,9 +33,7 @@ class Transaction {
       id: json['id'],
       title: json['title'],
       amount: double.parse(json['amount']),
-      type: typStr == 'credit'
-          ? TransactionType.income
-          : TransactionType.expense,
+
       note: json['description'] ?? '',
       category: json['category'],
       categoryName: json['category_detail'] ?? '',
@@ -58,7 +49,6 @@ class Transaction {
       'id': id,
       'title': title,
       'amount': amount,
-      'transaction_type': type == TransactionType.income ? 'credit' : 'debit',
       'description': note ?? '',
       'category': category,
       'created_at': date,

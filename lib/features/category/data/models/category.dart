@@ -1,33 +1,45 @@
-import 'package:flutter/material.dart';
-import 'package:bfinance/features/category/data/mappers/category_mapper.dart';
+enum CategoryType { income, expense }. // Added enum for category type
 
 class Category {
   final int? id;
   final String name;
   final DateTime createdAt;
-  final Icon icon;
-
-  
+  final String icon;
+  final CategoryType type;
 
   Category({
     this.id,
     required this.name,
     required this.icon,
+    required this.type,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
+
+
+  bool get isIncome =>
+      type == CategoryType.income; // Helper getter to check if it's income
 
   //Function to convert JSON  to Model(GET from API)
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
       id: json['id'],
+      
       name: json['name'],
-      icon: CategoryIconMapper.getIcon(json['iconKey'] ?? 'wallet'),
+      icon:
+          json['iconKey'] ??
+          'wallet', // Default to 'wallet' if iconKey is missing
+      type: json['type'] == 'income'
+          ? CategoryType.income
+          : CategoryType.expense,
     );
   }
 
   // Function to convert Model to JSON (POST to API)
   Map<String, dynamic> categoryToJson() {
-    return {'name': name};
+    return {'name': name,
+            'transaction_type': type == CategoryType.income ? 'credit' : 'debit',
+            'iconKey': icon,
+};
   }
 }
 
