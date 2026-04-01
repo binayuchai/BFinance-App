@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:bfinance/features/category/data/models/category.dart';
 
 class Transaction {
   final int? id;
-  final int category;
-  final String? categoryName; // Added category name field
+  final int categoryId; // Store category ID for API interactions
+  // final String? categoryName; // Added category name field
   final String title; // e.g., "Salary", "Groceries"
   final String date;
   final double amount;
@@ -11,6 +12,7 @@ class Transaction {
   final String? paymentMethod;
   final String? note;
   final Icon? icon;
+  final Category category; // Store the category object for type checking
 
   Transaction({
     this.id,
@@ -19,11 +21,16 @@ class Transaction {
     required this.date,
     required this.amount,
     required this.time,
-    this.categoryName, // Initialize category name
+    // this.categoryName, // Initialize category name
     this.paymentMethod,
     this.note,
     this.icon,
+    required this.categoryId,
   });
+
+  bool get isIncome =>
+      category.type ==
+      CategoryType.income; // Helper getter to check if it's income
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     final typStr = (json['transaction_type'] ?? '').toString().toLowerCase();
@@ -35,8 +42,10 @@ class Transaction {
       amount: double.parse(json['amount']),
 
       note: json['description'] ?? '',
-      category: json['category'],
-      categoryName: json['category_detail'] ?? '',
+      categoryId: json['category'],
+      category: Category.fromJson(
+        json['category_detail'],
+      ), // Parse the category object
 
       date: (json['created_at']),
       time: json['time'] ?? '',
@@ -50,7 +59,7 @@ class Transaction {
       'title': title,
       'amount': amount,
       'description': note ?? '',
-      'category': category,
+      'category': categoryId,
       'created_at': date,
     };
   }

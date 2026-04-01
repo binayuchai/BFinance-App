@@ -13,6 +13,7 @@ class _AddCategoryState extends State<AddCategory> {
   String? _nameError;
   String? _selectedIconKey;
   final _nameController = TextEditingController();
+  CategoryType _selectedType = CategoryType.expense; // Default to expense
 
   // all available icons for selection that matches the CategoryIconMapper
   static const List<({String key, String label})> _iconOptions = [
@@ -60,6 +61,8 @@ class _AddCategoryState extends State<AddCategory> {
       id: DateTime.now().millisecondsSinceEpoch, // Generate a unique ID
       name: _nameController.text.trim(),
       icon: _selectedIconKey!,
+      type:
+          _selectedType, // Default to expense, you can add a toggle for this in the UI later
     );
     Navigator.pop(context, newCategory);
   }
@@ -228,7 +231,32 @@ class _AddCategoryState extends State<AddCategory> {
                   ],
                 ),
               ),
-
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ChoiceChip(
+                  label: const Text("Expense"),
+                  selected: _selectedType == CategoryType.expense,
+                  onSelected: (selected) {
+                    setState(() {
+                      _selectedType = CategoryType.expense;
+                    });
+                  },
+                ),
+                const SizedBox(width: 10),
+                ChoiceChip(
+                  label: const Text("Income"),
+                  selected: _selectedType == CategoryType.income,
+                  onSelected: (selected) {
+                    setState(() {
+                      _selectedType = CategoryType.income;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             // Save button or other actions can be added here
             SizedBox(
               width: double.infinity,

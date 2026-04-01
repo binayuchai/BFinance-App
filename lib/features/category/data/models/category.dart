@@ -1,4 +1,4 @@
-enum CategoryType { income, expense }. // Added enum for category type
+enum CategoryType { income, expense } // Added enum for category type
 
 class Category {
   final int? id;
@@ -15,15 +15,11 @@ class Category {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
-
-  bool get isIncome =>
-      type == CategoryType.income; // Helper getter to check if it's income
-
   //Function to convert JSON  to Model(GET from API)
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
       id: json['id'],
-      
+
       name: json['name'],
       icon:
           json['iconKey'] ??
@@ -36,10 +32,11 @@ class Category {
 
   // Function to convert Model to JSON (POST to API)
   Map<String, dynamic> categoryToJson() {
-    return {'name': name,
-            'transaction_type': type == CategoryType.income ? 'credit' : 'debit',
-            'iconKey': icon,
-};
+    return {
+      'name': name,
+      'transaction_type': type == CategoryType.income ? 'credit' : 'debit',
+      'iconKey': icon,
+    };
   }
 }
 

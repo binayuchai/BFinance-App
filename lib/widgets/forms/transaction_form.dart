@@ -68,21 +68,33 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     }
 
     final categoryProvider = context.read<CategoryProvider>();
-    final findCategoryName = categoryProvider.categories.firstWhere(
+    // final findCategoryName = categoryProvider.categories.firstWhere(
+    //   (cat) => cat.id == categoryProvider.selectedCategoryId,
+    //   orElse: () => categoryProvider.categories.first,
+    // ); // Fallback to first category if not found
+
+    if (categoryProvider.selectedCategoryId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please select a category")));
+      return;
+    }
+    final selectedCategory = categoryProvider.categories.firstWhere(
       (cat) => cat.id == categoryProvider.selectedCategoryId,
-      orElse: () => categoryProvider.categories.first,
-    ); // Fallback to first category if not found
+    );
 
     final Transaction transactionData = Transaction(
       id: null,
       title: _titleController.text,
       date: DateTime.now().toString(),
       amount: amount,
-      type: _isIncome ? TransactionType.income : TransactionType.expense,
+      // type: _isIncome ? TransactionType.income : TransactionType.expense,
       time: DateTime.now().toString(),
       note: _noteController.text == "" ? null : _noteController.text,
-      category: categoryProvider.selectedCategoryId ?? 1,
-      categoryName: findCategoryName.name,
+      categoryId: categoryProvider.selectedCategoryId ?? 1,
+      category: selectedCategory,
+      // category: selectedCategory,
+      // categoryId: selectedCategory.id!,
     );
 
     //Prepare the data to be sent

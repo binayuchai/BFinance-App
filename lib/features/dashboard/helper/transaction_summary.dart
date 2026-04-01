@@ -1,5 +1,5 @@
-
 import 'package:bfinance/features/dashboard/models/transaction.dart';
+import 'package:bfinance/features/category/data/models/category.dart';
 
 class TransactionSummary {
   final double totalIncome;
@@ -24,9 +24,9 @@ class TransactionSummary {
 
     for (var tx in transactions) {
       final date = DateTime.parse(tx.date).toLocal();
-      if (tx.type == TransactionType.income) {
+      if (tx.category.type == CategoryType.income) {
         income += tx.amount;
-      } else if (tx.type == TransactionType.expense &&
+      } else if (tx.category.type == CategoryType.expense &&
           date.year == DateTime.now().year) {
         // Only consider expenses for the current year
         expenses += tx.amount;
@@ -61,17 +61,17 @@ Method for Pie Chart Data
       print("Now: $now  month: ${now.month}  year: ${now.year}");
       print("Transaction month: ${date.month}  year: ${date.year}");
       print(
-        "date of transaction: ${tx.date}, parsed date: $date, category: ${tx.categoryName}, amount: ${tx.amount}, type: ${tx.type}",
+        "date of transaction: ${tx.date}, parsed date: $date, category: ${tx.category.name}, amount: ${tx.amount}, type: ${tx.category.type}",
       );
-      if (tx.type == TransactionType.expense &&
+      if (tx.category.type == CategoryType.expense &&
           date.month == now.month &&
           date.year == now.year) {
         print(
-          "Processing transaction: ${tx.title}, Amount: ${tx.amount}, Category: ${tx.categoryName}, Date: ${tx.date}",
+          "Processing transaction: ${tx.title}, Amount: ${tx.amount}, Category: ${tx.category.name}, Date: ${tx.date}",
         );
         String categoryKey =
-            (tx.categoryName != null && tx.categoryName!.isNotEmpty)
-            ? tx.categoryName!
+            (tx.category.name != null && tx.category.name!.isNotEmpty)
+            ? tx.category.name!
             : 'Uncategorized'; // Use category name or "Unknown" if null
         data[categoryKey] = (data[categoryKey] ?? 0) + tx.amount;
         print(
@@ -99,7 +99,7 @@ Method for Pie Chart Data
     ); // End of the week (next Monday) at 00:00:00
     for (final tx in transactions) {
       final date = DateTime.parse(tx.date); // Parse the date string to DateTime
-      if (tx.type == TransactionType.expense &&
+      if (tx.category.type == CategoryType.expense &&
           !date.isBefore(startOfWeek) &&
           date.isBefore(endOfWeek)) {
         int dayIndex = date.weekday - 1; // converting to 0-based index
@@ -125,7 +125,8 @@ Method for Pie Chart Data
     final currentYear = DateTime.now().year;
     for (final tx in transactions) {
       final date = DateTime.parse(tx.date); // Parse the date string to DateTime
-      if (tx.type == TransactionType.expense && date.year == currentYear) {
+      if (tx.category.type == CategoryType.expense &&
+          date.year == currentYear) {
         int monthIndex = date.month - 1; // converting to 0-based index
         monthlyExpense[monthIndex] += tx.amount;
       }
