@@ -5,7 +5,10 @@ import 'dart:convert';
 import '../features/dashboard/models/transaction.dart';
 
 class TransactionService {
-  final String apiUrl = 'http://127.0.0.1:8000/api/transaction/';
+  // final String apiUrl = 'http://127.0.0.1:8000/api/transaction/';
+  // final String apiUrl = 'http://192.168.3.174:8000/api/transaction/';
+  final String apiUrl =
+      'https://footpad-oasis-tipped.ngrok-free.dev/api/transaction/';
   final ApiService api = ApiService();
 
   //GET Transactions from API
@@ -38,6 +41,8 @@ class TransactionService {
         body: jsonEncode(transaction.toJson()),
       );
 
+      print("Status: ${response.statusCode}");
+      print("Response body: ${response.body}");
       if (response.statusCode == 201) {
         print("Transaction added successfully.");
         return true;

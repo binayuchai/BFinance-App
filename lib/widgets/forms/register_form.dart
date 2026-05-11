@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:bfinance/services/api_service.dart';
+import 'package:provider/provider.dart';
+import 'package:bfinance/providers/category_provider.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
@@ -13,14 +16,61 @@ class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final ApiService api = ApiService();
 
-  void _submit() {
+  void _submit() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
+      final name = _nameController.text.trim();
+      final confirmPassword = _confirmPasswordController.text.trim();
 
       print("Email: $email");
       print("Password: $password");
+      print("Name: $name");
+
+      try {
+        // Call the registration API
+        final result = await api.registerUser(
+          name,
+          email,
+          password,
+          confirmPassword,
+        );
+
+        if (result.success) {
+          if (!mounted) return;
+          print("Registration successful");
+          final token = await api.getAccessToken();
+          print("Registration dashboard token : $token");
+          context
+              .read<CategoryProvider>()
+              .resetCategories(); // Reset categories to ensure fresh fetch after registration
+          await context
+              .read<CategoryProvider>()
+              .fetchCategories(); // Fetch categories after registration to populate the dashboard
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        } else {
+          // Show error message from backend
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result.errorMessage ?? "Registration failed. Please try again.",
+              ),
+            ),
+          );
+          print("Registration failed: ${result.errorMessage}");
+        }
+      } catch (e) {
+        // Handle API errors
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Network error: ${e.toString()}")),
+        );
+        print("Registration error: $e");
+      }
     }
   }
 
@@ -44,6 +94,21 @@ class _RegisterFormState extends State<RegisterForm> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: "Your Name",
+                        hintText: "John Doe",
+                        prefixIcon: Icon(Icons.person, color: Colors.blue),
+                      ),
+                      validator: (String? value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your name";
+                        }
+                        return null;
+                      },
+                    ),
+
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,

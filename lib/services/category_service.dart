@@ -5,7 +5,11 @@ import 'dart:async';
 import 'package:bfinance/features/category/data/models/category.dart';
 
 class CategoryService {
-  final String apiUrl = 'http://127.0.0.1:8000/api/category/';
+  // final String apiUrl = 'http://127.0.0.1:8000/api/category/';
+
+  // final String apiUrl = 'http://192.168.3.174:8000/api/category/';
+  final String apiUrl =
+      'https://footpad-oasis-tipped.ngrok-free.dev/api/category/';
   final ApiService api = ApiService();
 
   // Add methods for fetching and managing categories here
@@ -16,8 +20,12 @@ class CategoryService {
     try {
       print("Fetching categories from API...");
       final headers = await api.authHeaders();
+      final url = Uri.parse(apiUrl);
+      print("GET $url with headers: $headers");
+      print("Initiating category fetch request...");
+      print("URL: $url");
       final response = await http
-          .get(Uri.parse(apiUrl), headers: headers)
+          .get(url, headers: headers)
           .timeout(
             const Duration(seconds: 10),
             onTimeout: () {
@@ -25,6 +33,11 @@ class CategoryService {
               throw TimeoutException('Category fetch request timed out');
             },
           );
+      final decoded = jsonDecode(response.body);
+
+      print(decoded.runtimeType);
+      print(decoded);
+
       print("Category fetch response status: ${response.statusCode}");
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -51,20 +64,37 @@ class CategoryService {
     try {
       final headers = await api.authHeaders();
       final response = await http.post(
-        body: jsonEncode(category.categoryToJson()),
-        headers: headers,
         Uri.parse(apiUrl),
+        headers: headers,
+        body: jsonEncode(category.categoryToJson()),
       );
+      print("Add category response status: ${response.statusCode}");
+      print("Add category response body: ${response.body}");
 
       if (response.statusCode == 201) {
         print("Category added successfully.");
         return true;
       } else {
         print("Failed to add category. Status code: ${response.statusCode}");
+        print("Response body: ${response.body}");
         return false;
       }
     } catch (e) {
       print("Error adding category: $e");
+      return false;
+    }
+  }
+
+  // Batch seed categories
+  Future<bool> seedCategories(List<Category> categories) async {
+    try {
+      // We run these in parallel for better performance
+      final results = await Future.wait(
+        categories.map((cat) => addCategory(cat)),
+      );
+      return results.every((success) => success); // If all succeed, return true
+    } catch (e) {
+      print("Error seeding categories: $e");
       return false;
     }
   }

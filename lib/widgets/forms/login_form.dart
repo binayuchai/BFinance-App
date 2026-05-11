@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
+import 'package:bfinance/providers/category_provider.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -23,19 +25,38 @@ class _LoginFormState extends State<LoginForm> {
 
       print("Email: $email");
       print("Password: $password");
-      // Call the login API
-      bool success = await api.loginUser(email, password);
 
-      if (success) {
+      try {
+        // Call the login API
+        final result = await api.loginUser(email, password);
+
+        if (result.success) {
+          if (!mounted) return;
+          print("Login successful");
+          final token = await api.getAccessToken();
+          print("Login dashboard token : $token");
+          context.read<CategoryProvider>().resetCategories(); // 👈
+          await context.read<CategoryProvider>().fetchCategories();
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        } else {
+          // Show error message from backend
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result.errorMessage ?? "Login failed. Please try again.",
+              ),
+            ),
+          );
+          print("Login failed: ${result.errorMessage}");
+        }
+      } catch (e) {
+        // Handle API errors
         if (!mounted) return;
-        print("Login successful");
-        final token = await api.getAccessToken();
-        print("Login dashboard token : $token");
-
-        Navigator.pushReplacementNamed(context, '/dashboard');
-      } else {
-        // Show error message
-        print("Login failed");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Network error: ${e.toString()}")),
+        );
+        print("Login error: $e");
       }
     }
   }

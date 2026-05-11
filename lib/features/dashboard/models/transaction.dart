@@ -42,7 +42,7 @@ class Transaction {
       amount: double.parse(json['amount']),
 
       note: json['description'] ?? '',
-      categoryId: json['category'],
+      categoryId: json['category'], // Store category ID for API interactions
       category: Category.fromJson(
         json['category_detail'],
       ), // Parse the category object
@@ -60,52 +60,7 @@ class Transaction {
       'amount': amount,
       'description': note ?? '',
       'category': categoryId,
-      'created_at': date,
+      'transaction_type': isIncome ? 'credit' : 'debit',
     };
   }
 }
-
-// Function to convert JSON  to Model(GET from API)
-
-// final List<Transaction> transactions = [
-//   Transaction(
-//     id: 1,
-//     title: "Salary",
-//     date: "2025-08-01",
-//     amount: 3000.00,
-//     type: TransactionType.income,
-//     icon: const Icon(Icons.wallet, color: Colors.blue),
-//     time: "10:00 AM",
-//     category: 1,
-//   ),
-//   Transaction(
-//     id: 2,
-//     title: "Groceries",
-//     date: "2025-08-05",
-//     amount: 150.75,
-//     type: TransactionType.expense,
-//     icon: const Icon(Icons.medical_services, color: Colors.teal),
-//     time: "2:30 PM",
-//     category: 4,
-//   ),
-//   Transaction(
-//     id: 3,
-//     title: "Electricity Bill",
-//     date: "2025-08-10",
-//     amount: 80.50,
-//     type: TransactionType.expense,
-//     icon: const Icon(Icons.electric_bolt, color: Colors.blue),
-//     time: "9:00 AM",
-//     category: 6,
-//   ),
-//   Transaction(
-//     id: 4,
-//     title: "Freelance Project",
-//     date: "2025-08-15",
-//     amount: 500.00,
-//     type: TransactionType.income,
-//     icon: const Icon(Icons.attach_money, color: Colors.green),
-//     time: "1:00 PM",
-//     category: 2,
-//   ),
-// ];

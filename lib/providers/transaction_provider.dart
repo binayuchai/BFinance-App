@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 class TransactionProvider extends ChangeNotifier {
   List<Transaction> transactions = [];
   bool _isLoading = false;
-  bool _isLoaded = false;
+  bool _isLoaded =
+      false; // To track if transactions have been loaded at least once
   String? _error;
 
   List<Transaction> get getTransaction => transactions;

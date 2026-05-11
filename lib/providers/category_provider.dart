@@ -20,6 +20,14 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resetCategories() {
+    _categories = [];
+    _isLoaded = false;
+    _selectedCategoryId = null;
+    _error = null;
+    notifyListeners();
+  }
+
   Future<void> fetchCategories() async {
     // if data is already loaded, do not fetch again
     if (_isLoaded || _isLoading) return; // Prevent redundant fetches
@@ -64,27 +72,76 @@ class CategoryProvider extends ChangeNotifier {
 
   // Add a new category and refresh the list
   Future<bool> addCategoryProvider(Category category) async {
+    print("Adding category: ${category.name}");
+    _isLoading = true; // Set loading state to true while adding category
+    _error = null;
+    notifyListeners();
     try {
       final category_service = CategoryService();
       final success = await category_service.addCategory(category);
       if (success) {
+        // Reset loading state and error before fetching categories
+        _isLoaded = false;
         // Refresh the category list
         await fetchCategories();
       } else {
         _error = "Failed to add category";
-        notifyListeners();
       }
       return success;
     } catch (e) {
       print("Error adding category: $e");
       _error = "Failed to add category: $e";
-      notifyListeners();
       return false;
+    } finally {
+      _isLoading = false; // Set loading state to false after attempt
+      notifyListeners();
     }
   }
 
   // Ensure categories are loaded
   Future<void> ensureLoaded() async {
     await fetchCategories();
+  }
+
+  // Seed default categories
+  Future<void> seedDefaultCategories() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners(); // Notify listeners to show loading state
+
+    final defaults = [
+      Category(name: "Salary", icon: "salary", type: CategoryType.income),
+      Category(name: "Food", icon: "restaurant", type: CategoryType.expense),
+      Category(
+        name: "Transport",
+        icon: "transport",
+        type: CategoryType.expense,
+      ),
+      Category(name: "Rent", icon: "rent", type: CategoryType.expense),
+      Category(
+        name: "Shopping",
+        icon: "shopping_cart",
+        type: CategoryType.expense,
+      ),
+      Category(name: "Health", icon: "health", type: CategoryType.expense),
+    ];
+
+    try {
+      final service = CategoryService();
+      final success = await service.seedCategories(defaults);
+
+      if (success) {
+        _isLoaded = false; // Force refresh
+        await fetchCategories(); // Fetch updated categories
+      } else {
+        _error = "Failed to seed some categories";
+      }
+    } catch (e) {
+      _error = "Failed to seed defaults: $e";
+      debugPrint(_error);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

@@ -41,7 +41,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     // }
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddCategory()),
+      MaterialPageRoute(
+        builder: (context) => const AddCategory(),
+      ), // Navigate to the AddCategory screen
     );
     if (result == true) {
       // Refresh categories if a new one was added
@@ -143,10 +145,38 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // 2️⃣ Loaded but empty → fallback message
-    if (!categoryProvider.isLoading && categoryProvider.categories.isEmpty) {
-      return const Center(child: Text("No categories available"));
-    }
+    // // 2️⃣ Loaded but empty → show prompt to load defaults
+    // if (!categoryProvider.isLoading && categoryProvider.categories.isEmpty) {
+    //   return Center(
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         const Icon(Icons.category_outlined, size: 48, color: Colors.grey),
+    //         const SizedBox(height: 16),
+    //         const Text("No categories found",
+    //             style: TextStyle(fontWeight: FontWeight.bold)),
+    //         const Padding(
+    //           padding: EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+    //           child: Text(
+    //             "You need at least one category to add a transaction. Would you like to load our recommended presets?",
+    //             textAlign: TextAlign.center,
+    //             style: TextStyle(color: Colors.grey),
+    //           ),
+    //         ),
+    //         const SizedBox(height: 16),
+    //         ElevatedButton.icon(
+    //           onPressed: () => categoryProvider.seedDefaultCategories(),
+    //           icon: const Icon(Icons.auto_awesome),
+    //           label: const Text("Load Preset Categories"),
+    //         ),
+    //         TextButton(
+    //           onPressed: () => _openCreateCategoryScreen(),
+    //           child: const Text("Create Custom Category"),
+    //         ),
+    //       ],
+    //     ),
+    //   );
+    // }
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: SingleChildScrollView(
@@ -210,6 +240,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 selectedCategoryId: categoryProvider.selectedCategoryId,
                 onCategorySelected: categoryProvider.setSelectedCategoryId,
                 onAddCategory: () => _openCreateCategoryScreen(),
+                isIncome: _isIncome,
               ),
 
               // DropdownButtonFormField<int>(

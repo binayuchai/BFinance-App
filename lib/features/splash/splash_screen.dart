@@ -30,6 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
       if (!mounted) return;
+      print("No token found, navigating to login");
       Navigator.pushReplacementNamed(context, '/login');
     }
   }

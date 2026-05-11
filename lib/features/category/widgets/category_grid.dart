@@ -8,12 +8,15 @@ class CategoryGrid extends StatelessWidget {
   final ValueChanged<int?>
   onCategorySelected; // Callback to notify parent of category selection
   final VoidCallback onAddCategory; // Callback to notify parent to add category
+  final bool
+  isIncome; // Flag to indicate if the categories are for income or expenses
 
   const CategoryGrid({
     required this.categories,
     required this.selectedCategoryId,
     required this.onCategorySelected,
     required this.onAddCategory,
+    required this.isIncome,
 
     super.key,
   });
@@ -21,6 +24,15 @@ class CategoryGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    // Filter categories based on the isIncome flag
+    final CategoryType typeFilter = isIncome
+        ? CategoryType.income
+        : CategoryType.expense;
+    final filteredCategories = categories.where((cat) {
+      return cat.type == typeFilter || cat.type == CategoryType.both;
+    }).toList();
+
     return GridView.builder(
       // Build a grid view to display categories
       shrinkWrap: true, // Let the grid take only the necessary space
@@ -33,11 +45,11 @@ class CategoryGrid extends StatelessWidget {
         crossAxisSpacing: 8, // Spacing between columns
       ),
       itemCount:
-          categories.length + 1, // Number of items (categories + add button)
+          filteredCategories.length +
+          1, // Number of items (categories + add button)
       itemBuilder: (context, index) {
-        // If index is 0, show the "Add Category" button
-
-        if (index == categories.length) {
+        // If index is equal to the number of categories, show the "Add Category" button
+        if (index == filteredCategories.length) {
           return GestureDetector(
             onTap: onAddCategory,
             child: Container(
@@ -61,11 +73,15 @@ class CategoryGrid extends StatelessWidget {
             ),
           );
         }
-        final cat = categories[index];
-        final isSelected = cat.id == selectedCategoryId;
+        final cat = filteredCategories[index];
+        final isSelected =
+            cat.id ==
+            selectedCategoryId; // Check if this category is currently selected
 
+        // Create a gesture detector for each category
         return GestureDetector(
-          onTap: () => onCategorySelected(cat.id), //
+          onTap: () =>
+              onCategorySelected(cat.id), // Notify parent of category selection
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             decoration: BoxDecoration(
@@ -74,11 +90,13 @@ class CategoryGrid extends StatelessWidget {
                   : colorScheme.onSurfaceVariant,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isSelected ? colorScheme.primary : Colors.transparent,
+                color: isSelected
+                    ? colorScheme.primary
+                    : const Color.fromARGB(95, 224, 224, 224),
                 width: 1.5,
               ),
             ),
-
+            // Display the category icon and name
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -100,8 +118,8 @@ class CategoryGrid extends StatelessWidget {
                           ? colorScheme.primary
                           : colorScheme.onSurfaceVariant,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1, // Limit text to one line
+                    overflow: TextOverflow.ellipsis, // Prevent text overflow
                     textAlign: TextAlign.center,
                   ),
                 ),

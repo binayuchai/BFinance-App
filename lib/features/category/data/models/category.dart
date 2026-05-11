@@ -1,5 +1,6 @@
-enum CategoryType { income, expense } // Added enum for category type
+enum CategoryType { income, expense, both } // Added enum for category type
 
+// category "Both" is added to handle categories that can be used for both income and expense, like Other,Transfer,etc.
 class Category {
   final int? id;
   final String name;
@@ -22,11 +23,12 @@ class Category {
 
       name: json['name'],
       icon:
-          json['iconKey'] ??
-          'wallet', // Default to 'wallet' if iconKey is missing
-      type: json['type'] == 'income'
+          json['icon'] ?? 'wallet', // Default to 'wallet' if iconKey is missing
+      type: json['category_type'] == 'income'
           ? CategoryType.income
-          : CategoryType.expense,
+          : json['category_type'] == 'expense'
+          ? CategoryType.expense
+          : CategoryType.both,
     );
   }
 
@@ -34,8 +36,12 @@ class Category {
   Map<String, dynamic> categoryToJson() {
     return {
       'name': name,
-      'transaction_type': type == CategoryType.income ? 'credit' : 'debit',
-      'iconKey': icon,
+      'category_type': type == CategoryType.income
+          ? 'income'
+          : type == CategoryType.expense
+          ? 'expense'
+          : 'both',
+      'icon': icon,
     };
   }
 }

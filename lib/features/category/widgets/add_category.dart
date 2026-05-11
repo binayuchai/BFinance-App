@@ -1,6 +1,8 @@
 import 'package:bfinance/features/category/data/mappers/category_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/features/category/data/models/category.dart';
+import 'package:bfinance/providers/category_provider.dart';
+import 'package:provider/provider.dart';
 
 class AddCategory extends StatefulWidget {
   const AddCategory({super.key});
@@ -38,8 +40,10 @@ class _AddCategoryState extends State<AddCategory> {
     super.dispose();
   }
 
-  void _onSave() {
+  void _onSave() async {
     // Implement save logic here
+
+    print("User clicked Save category");
     // Return true to indicate a new category was added
     Navigator.pop(context, true);
     // Validate name
@@ -49,6 +53,9 @@ class _AddCategoryState extends State<AddCategory> {
       });
       return;
     }
+
+    // calling the provider to add the category to the backend and refresh the list
+
     //validate icon
     if (_selectedIconKey == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,28 +69,32 @@ class _AddCategoryState extends State<AddCategory> {
       name: _nameController.text.trim(),
       icon: _selectedIconKey!,
       type:
-          _selectedType, // Default to expense, you can add a toggle for this in the UI later
+          _selectedType, // Default to expense, but you can add a toggle to switch between expense and income if needed
     );
-    Navigator.pop(context, newCategory);
+    final success = await context.read<CategoryProvider>().addCategoryProvider(
+      newCategory,
+    );
+    if (!mounted) {
+      return;
+    } // Ensure widget is still mounted before showing snackbar
+    if (success) {
+      Navigator.pop(context, true); // Pop with true to indicate success
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Failed to add category. Please try again."),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isLoading = context.watch<CategoryProvider>().isLoading;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("New Category"),
-        actions: [
-          TextButton(
-            onPressed: _onSave,
-
-            // Implement save logic here
-            // Return true to indicate a new category was added
-            child: Text("Save", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text("New Category")),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -261,14 +272,16 @@ class _AddCategoryState extends State<AddCategory> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _onSave,
+                onPressed: isLoading ? null : _onSave,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text("Save Category"),
+                child: isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text("Save Category"),
               ),
             ),
           ],
