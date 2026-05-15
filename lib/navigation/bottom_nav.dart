@@ -71,9 +71,10 @@ class _BottomNavState extends State<BottomNav> {
           await categoryProvider.ensureLoaded();
 
           if (!mounted) return;
+          final messenger = ScaffoldMessenger.of(context);
 
           if (categoryProvider.categories.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               const SnackBar(
                 content: Text(
                   "Please add a category before adding transactions",
@@ -84,6 +85,7 @@ class _BottomNavState extends State<BottomNav> {
             setState(() {
               _selectedIndex = 4;
             });
+            return;
           }
 
           final result = await showModalBottomSheet(
@@ -96,16 +98,16 @@ class _BottomNavState extends State<BottomNav> {
               child: AddTransactionForm(),
             ),
           );
-          if (result == true) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          if (!mounted) return;
+
+          if (result == null) {
+            messenger.showSnackBar(
               const SnackBar(content: Text("Transaction added successfully")),
             );
             // Refresh transactions
             // context.read<TransactionProvider>().fetchTransactions();
-          } else if (result == false) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Transaction addition cancelled")),
-            );
+          } else {
+            messenger.showSnackBar(SnackBar(content: Text(result)));
           }
         },
         child: Icon(Icons.add),

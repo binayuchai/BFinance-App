@@ -1,68 +1,33 @@
 import 'package:bfinance/features/category/widgets/expense.dart';
 import 'package:bfinance/features/category/widgets/income.dart';
 import 'package:flutter/material.dart';
+import 'package:bfinance/providers/category_provider.dart';
+import 'package:bfinance/features/category/widgets/add_category.dart'; // import your screen
+import 'package:provider/provider.dart';
 
-class Category extends StatelessWidget {
+class Category extends StatefulWidget {
   const Category({super.key});
 
+  @override
+  State<Category> createState() => _CategoryState();
+}
+
+class _CategoryState extends State<Category> {
   // Future<bool> _addCategory(BuildContext context, String name) async {
   //   // Implement the logic to add category to the database
-  //   print("Adding category: $name");
 
-  //   try {
-  //     final response = await context
-  //         .read<CategoryProvider>()
-  //         .addCategoryProvider(name);
-  //     return response;
-  //   } catch (e) {
-  //     print("Error adding category: $e");
-  //     return false;
-  //   }
-  // }
-
-  void _showAddCategoryDialog(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final TextEditingController categoryController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Add Category"),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: categoryController,
-            decoration: const InputDecoration(
-              labelText: "Category Name",
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return "Please enter category name";
-              }
-              return null;
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                // _addCategory(context, categoryController.text);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Category added successfully")),
-                );
-              }
-              Navigator.pop(context);
-            },
-            child: const Text("Add"),
-          ),
-        ],
-      ),
+  Future<void> _showAddCategoryDialog() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddCategory()),
     );
+    if (result == true) {
+      if (!mounted) return;
+      context.read<CategoryProvider>().fetchCategories(); // refresh after add
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Category added successfully")),
+      );
+    }
   }
 
   @override
@@ -75,10 +40,7 @@ class Category extends StatelessWidget {
 
           actions: [
             IconButton(
-              onPressed: () {
-                // Add category logic here
-                _showAddCategoryDialog(context);
-              },
+              onPressed: _showAddCategoryDialog,
               icon: const Icon(Icons.add),
               tooltip: 'Add Category',
             ),

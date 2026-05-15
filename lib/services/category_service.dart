@@ -98,4 +98,51 @@ class CategoryService {
       return false;
     }
   }
+
+  Future<bool> updateCategory(Category category) async {
+    try {
+      final headers = await api.authHeaders();
+      final response = await http.put(
+        Uri.parse('$apiUrl${category.id}/'),
+        headers: headers,
+        body: jsonEncode(category.categoryToJson()),
+      );
+      print("Update category response status: ${response.statusCode}");
+      print("Update category response body: ${response.body}");
+      if (response.statusCode == 200) {
+        print("Category updated successfully.");
+        return true;
+      } else {
+        print("Failed to update category. Status code: ${response.statusCode}");
+        print("Response body: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Error updating category: $e");
+      return false;
+    }
+  }
+
+  Future<bool> deleteCategory(int categoryId) async {
+    try {
+      final headers = await api.authHeaders();
+      final response = await http.delete(
+        Uri.parse('$apiUrl$categoryId/'),
+        headers: headers,
+      );
+      print("Delete category response status: ${response.statusCode}");
+      print("Delete category response body: ${response.body}");
+      if (response.statusCode == 204) {
+        print("Category deleted successfully.");
+        return true;
+      } else {
+        print("Failed to delete category. Status code: ${response.statusCode}");
+        print("Response body: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Error deleting category: $e");
+      return false;
+    }
+  }
 }

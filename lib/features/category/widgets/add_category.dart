@@ -43,9 +43,6 @@ class _AddCategoryState extends State<AddCategory> {
   void _onSave() async {
     // Implement save logic here
 
-    print("User clicked Save category");
-    // Return true to indicate a new category was added
-    Navigator.pop(context, true);
     // Validate name
     if (_nameController.text.trim().isEmpty) {
       setState(() {

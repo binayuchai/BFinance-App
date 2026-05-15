@@ -25,6 +25,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   final TextEditingController _noteController = TextEditingController();
 
   final ApiService api = ApiService();
+  bool _isLoadingTransaction = false;
 
   //Defining the Error variable
   String? _amountError;
@@ -33,12 +34,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   Future<void> _openCreateCategoryScreen() async {
     // Implement navigation to create category screen
-    // For example, using Navigator.push:
-    // final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => CreateCategoryScreen()));
-    // if (result == true) {
-    //   // Refresh categories if a new one was added
-    //   context.read<CategoryProvider>().fetchCategories();
-    // }
+
+    // Capture the context of the root ScaffoldMessenger
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -46,15 +44,18 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       ), // Navigate to the AddCategory screen
     );
     if (result == true) {
+      if (!mounted) return;
+
       // Refresh categories if a new one was added
       context.read<CategoryProvider>().fetchCategories();
     }
   }
 
   // Implement the logic to add transaction to the database
-  Future<void> _addTransaction() async {
+  Future<String?> _addTransaction() async {
     setState(() {
       _amountError = null;
+      _isLoadingTransaction = true;
     });
     //Basic validation
     double? amount; // Declare amount variable
@@ -65,21 +66,21 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       print("Invalid amount format: $e");
       setState(() {
         _amountError = "Please enter a valid number for amount";
+        _isLoadingTransaction = false; // reset on early return
       });
-      return;
+      return "Please enter a valid number for amount";
     }
 
     final categoryProvider = context.read<CategoryProvider>();
-    // final findCategoryName = categoryProvider.categories.firstWhere(
-    //   (cat) => cat.id == categoryProvider.selectedCategoryId,
-    //   orElse: () => categoryProvider.categories.first,
-    // ); // Fallback to first category if not found
 
     if (categoryProvider.selectedCategoryId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Please select a category")));
-      return;
+      setState(() {
+        _isLoadingTransaction = false; // reset on early return
+      });
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).showSnackBar(const SnackBar(content: Text("Please select a category")));
+      return "Please select a category";
     }
     final selectedCategory = categoryProvider.categories.firstWhere(
       (cat) => cat.id == categoryProvider.selectedCategoryId,
@@ -114,17 +115,25 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
           .read<TransactionProvider>()
           .addTransactionProvider(transactionData);
 
-      if (!mounted) return;
-
       if (response) {
-        Navigator.pop(context, true);
+        await Future.delayed(const Duration(milliseconds: 900));
+        // Navigator.pop(context, true);
+        return null;
       } else {
-        Navigator.pop(context, false);
+        return "Failed to add transaction. Please try again.";
+        // Navigator.pop(context, false);
       }
     } catch (e) {
-      if (!mounted) return;
-      print("Error adding transaction: $e");
-      Navigator.pop(context, false);
+      setState(() {
+        _isLoadingTransaction = false;
+      });
+
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      // return "An error occurred while adding the transaction. Please try again.";
+      return "Network error: $e";
+      // Navigator.pop(context, false);
     }
   }
 
@@ -133,7 +142,11 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CategoryProvider>().ensureLoaded();
+      final categoryProvider = context.read<CategoryProvider>();
+
+      categoryProvider.setSelectedCategoryId(null);
+
+      categoryProvider.ensureLoaded();
     });
   }
 
@@ -282,15 +295,25 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _addTransaction();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Processing Data")),
-                      );
-                    }
-                  },
-                  child: const Text("Save Transaction"),
+                  onPressed: _isLoadingTransaction
+                      ? null // Disable button while loading
+                      : () async {
+                          if (_formKey.currentState!.validate()) {
+                            final result = await _addTransaction();
+                            if (!mounted) return;
+                            Navigator.pop(context, result);
+                          }
+                        },
+                  child: _isLoadingTransaction
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text("Save Transaction"),
                 ),
               ),
             ],
