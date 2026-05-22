@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/utils/category_color.dart';
-import 'package:bfinance/features/dashboard/helper/transaction_summary.dart';
+import 'package:bfinance/features/transaction/helper/transaction_summary.dart';
 import 'package:intl/intl.dart';
 
 class ExpenseDonutChart extends StatelessWidget {

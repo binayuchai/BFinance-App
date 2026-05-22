@@ -1,4 +1,4 @@
-import 'package:bfinance/features/dashboard/models/transaction.dart';
+import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

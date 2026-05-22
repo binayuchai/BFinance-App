@@ -1,4 +1,4 @@
-import 'package:bfinance/features/dashboard/models/transaction.dart';
+import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/features/category/data/models/category.dart';
 
 class TransactionSummary {

@@ -2,7 +2,7 @@ import 'package:bfinance/services/api_service.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../features/dashboard/models/transaction.dart';
+import '../features/transaction/models/transaction.dart';
 
 class TransactionService {
   // final String apiUrl = 'http://127.0.0.1:8000/api/transaction/';
@@ -32,7 +32,7 @@ class TransactionService {
   }
 
   //POST Transaction to API
-  Future<bool> addTransaction(Transaction transaction) async {
+  Future<Transaction?> addTransaction(Transaction transaction) async {
     try {
       final headers = await api.authHeaders();
       final response = await http.post(
@@ -45,13 +45,60 @@ class TransactionService {
       print("Response body: ${response.body}");
       if (response.statusCode == 201) {
         print("Transaction added successfully.");
-        return true;
+        return Transaction.fromJson(jsonDecode(response.body));
       } else {
         print("Failed to add transaction. Status code: ${response.statusCode}");
-        return false;
+        return null;
       }
     } catch (e) {
       print("Error adding transaction: $e");
+      return null;
+    }
+  }
+
+  //PUT Transaction to API
+  Future<Transaction?> updateTransaction(Transaction transaction) async {
+    try {
+      final headers = await api.authHeaders();
+      final response = await http.put(
+        Uri.parse('$apiUrl${transaction.id}/'),
+        headers: headers,
+        body: jsonEncode(transaction.toJson()),
+      );
+      if (response.statusCode == 200) {
+        print("Transaction updated successfully.");
+        return Transaction.fromJson(jsonDecode(response.body));
+      } else {
+        print(
+          "Failed to update transaction. Status code: ${response.statusCode}",
+        );
+        return null;
+      }
+    } catch (e) {
+      print("Error updating transaction: $e");
+      return null;
+    }
+  }
+
+  //DELETE Transaction from API
+  Future<bool> deleteTransaction(int id) async {
+    try {
+      final headers = await api.authHeaders();
+      final response = await http.delete(
+        Uri.parse('$apiUrl$id/'),
+        headers: headers,
+      );
+      if (response.statusCode == 204) {
+        print("Transaction deleted successfully.");
+        return true;
+      } else {
+        print(
+          "Failed to delete transaction. Status code: ${response.statusCode}",
+        );
+        return false;
+      }
+    } catch (e) {
+      print("Error deleting transaction: $e");
       return false;
     }
   }

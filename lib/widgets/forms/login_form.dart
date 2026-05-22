@@ -62,6 +62,20 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final message = ModalRoute.of(context)?.settings.arguments as String?;
+      if (message != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.orange),
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Theme(
       data: ThemeData.light(),

@@ -62,7 +62,7 @@ class ApiService {
   Future<Map<String, String>> authHeaders() async {
     final token = await getAccessToken();
     if (token == null) {
-      await logout();
+      await logout(sessionExpired: true);
       throw Exception('No valid access token found');
     }
     return {
@@ -283,12 +283,13 @@ class ApiService {
     return false;
   }
 
-  Future<void> logout() async {
+  Future<void> logout({bool sessionExpired = false}) async {
     await storage.delete(key: 'access_token');
     await storage.delete(key: 'refresh_token');
     navigatorKey.currentState!.pushNamedAndRemoveUntil(
       '/login',
       (route) => false,
+      arguments: sessionExpired ? 'Session expired. Please login again.' : null,
     );
   }
 }

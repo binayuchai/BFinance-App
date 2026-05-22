@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bfinance/features/category/widgets/add_category.dart';
 import 'package:bfinance/features/category/widgets/category_grid.dart';
-import 'package:bfinance/features/dashboard/models/transaction.dart';
+import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
@@ -116,18 +116,26 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
           .addTransactionProvider(transactionData);
 
       if (response) {
+        if (mounted) {
+          setState(
+            () => _isLoadingTransaction = false,
+          ); // reset loading state on success
+        }
         await Future.delayed(const Duration(milliseconds: 900));
         // Navigator.pop(context, true);
         return null;
       } else {
-        return "Failed to add transaction. Please try again.";
-        // Navigator.pop(context, false);
+        if (mounted) {
+          setState(() => _isLoadingTransaction = false);
+        } // reset loading state on failure
+        return "Failed to add transaction. Please try again."; // Navigator.pop(context, false);
       }
     } catch (e) {
-      setState(() {
-        _isLoadingTransaction = false;
-      });
-
+      if (mounted) {
+        setState(
+          () => _isLoadingTransaction = false,
+        ); // reset loading state on error
+      }
       // ScaffoldMessenger.of(
       //   context,
       // ).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -301,7 +309,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                           if (_formKey.currentState!.validate()) {
                             final result = await _addTransaction();
                             if (!mounted) return;
-                            Navigator.pop(context, result);
+                            Navigator.pop(context, result ?? "success");
                           }
                         },
                   child: _isLoadingTransaction

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
+import 'package:bfinance/features/transaction/models/transaction.dart';
+import 'package:bfinance/widgets/forms/edit_transaction_form.dart';
 // class TransactionList extends  {
 //   final List<Transaction> transactions;
 //   const TransactionList({super.key, required this.transactions});
@@ -63,17 +65,55 @@ class _TransactionListState extends State<TransactionList> {
       itemBuilder: (context, index) {
         final tx = transactions[index];
 
-        return ListTile(
-          leading: tx.icon,
-          title: Text(tx.title, style: TextStyle(fontWeight: FontWeight.w500)),
-          subtitle: Text(
-            "USD ${tx.amount}",
-            style: TextStyle(color: tx.isIncome ? Colors.green : Colors.red),
+        return Dismissible(
+          key: Key(tx.id.toString()),
+          direction: DismissDirection.endToStart, // Swipe left to delete
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 16.0),
+            child: const Icon(Icons.delete, color: Colors.white),
           ),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [Text(tx.date), Text(tx.time)],
+          onDismissed: (direction) async {
+            final success = await context
+                .read<TransactionProvider>()
+                .deleteTransactionProvider(tx.id!);
+            if (!context.mounted) return;
+            if (!success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    "Failed to delete the transaction. Please try again.",
+                  ),
+                ),
+              );
+            }
+          },
+          child: ListTile(
+            onTap: () async {
+              // Navigate to details or edit screen
+              final result = await showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) {
+                  return EditTransactionForm(transactions: tx);
+                },
+              );
+            },
+            leading: tx.icon,
+            title: Text(
+              tx.title,
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            subtitle: Text(
+              "USD ${tx.amount}",
+              style: TextStyle(color: tx.isIncome ? Colors.green : Colors.red),
+            ),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [Text(tx.date), Text(tx.time)],
+            ),
           ),
         );
       },

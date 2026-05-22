@@ -8,6 +8,7 @@ import 'package:bfinance/providers/category_provider.dart';
 import 'package:bfinance/widgets/forms/transaction_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bfinance/services/api_service.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -98,9 +99,17 @@ class _BottomNavState extends State<BottomNav> {
               child: AddTransactionForm(),
             ),
           );
-          if (!mounted) return;
+          //Checking token expiration and refreshing if needed before snackbar shows up
+          final token = await ApiService().getAccessToken();
 
+          if (!mounted) return;
+          if (token == null) return;
+          messenger
+              .clearSnackBars(); // Clear any existing snackbars before showing new one
           if (result == null) {
+            // User dismissed the form without adding a transaction
+            return;
+          } else if (result == "success") {
             messenger.showSnackBar(
               const SnackBar(content: Text("Transaction added successfully")),
             );
