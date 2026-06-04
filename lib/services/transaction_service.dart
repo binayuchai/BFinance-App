@@ -16,6 +16,8 @@ class TransactionService {
     try {
       final headers = await api.authHeaders();
       final response = await http.get(Uri.parse(apiUrl), headers: headers);
+      print("Status: ${response.statusCode}");
+      print("Response body: ${response.body}");
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((e) => Transaction.fromJson(e)).toList();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:bfinance/navigation/core_navigation.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/category_provider.dart';
+import 'package:bfinance/providers/currency_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,6 +25,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => TransactionProvider(),
         ), //  Holds & exposes transaction state; rebuilds UI on changes
+        ChangeNotifierProvider(
+          create: (_) => CurrencyProvider()..initialize(),
+        ), //  Holds & exposes currency state; initializes on app start
       ],
       child: MaterialApp(
         title: 'BFinance Manager',

@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:bfinance/features/category/widgets/add_category.dart';
 import 'package:bfinance/features/category/widgets/category_grid.dart';
 import 'package:bfinance/features/transaction/models/transaction.dart';
+import 'package:bfinance/providers/currency_provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
+import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/category_provider.dart';
+import 'package:bfinance/core/validators/amount_validator.dart';
 
 class AddTransactionForm extends StatefulWidget {
   const AddTransactionForm({super.key});
@@ -29,6 +32,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   //Defining the Error variable
   String? _amountError;
+
+  String? _categoryError;
 
   //Push to create category screen
 
@@ -57,37 +62,44 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       _amountError = null;
       _isLoadingTransaction = true;
     });
-    //Basic validation
-    double? amount; // Declare amount variable
 
-    try {
-      amount = double.parse(_amountController.text);
-    } catch (e) {
-      print("Invalid amount format: $e");
-      setState(() {
-        _amountError = "Please enter a valid number for amount";
-        _isLoadingTransaction = false; // reset on early return
-      });
-      return "Please enter a valid number for amount";
+    //Basic validation
+    final amount = AmountValidator.validateAndParse(_amountController.text, (
+      error,
+    ) {
+      if (mounted) {
+        setState(() {
+          _amountError = error;
+        });
+      }
+    });
+    if (amount == null) {
+      if (mounted) {
+        //  ensure we are still in the widget context before updating state
+        setState(() {
+          _isLoadingTransaction =
+              false; // reset loading state on validation failure
+        });
+      }
+      return "";
     }
 
     final categoryProvider = context.read<CategoryProvider>();
 
+    // Validate category selection
     if (categoryProvider.selectedCategoryId == null) {
       setState(() {
         _isLoadingTransaction = false; // reset on early return
+        _categoryError = "Please select a category";
       });
-      // ScaffoldMessenger.of(
-      //   context,
-      // ).showSnackBar(const SnackBar(content: Text("Please select a category")));
-      return "Please select a category";
+      return "";
     }
+
     final selectedCategory = categoryProvider.categories.firstWhere(
       (cat) => cat.id == categoryProvider.selectedCategoryId,
     );
 
     final Transaction transactionData = Transaction(
-      id: null,
       title: _titleController.text,
       date: DateTime.now().toString(),
       amount: amount,
@@ -109,6 +121,13 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     //   "payment_method": _isIncome ? _paymentMethodController.text : "",
     //   "source": _isIncome ? _sourceController.text : "",
     // };
+    //  show SnackBar only after validation passes
+    if (mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Saving transaction...")));
+    }
 
     try {
       final response = await context
@@ -121,7 +140,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
             () => _isLoadingTransaction = false,
           ); // reset loading state on success
         }
-        await Future.delayed(const Duration(milliseconds: 900));
+
         // Navigator.pop(context, true);
         return null;
       } else {
@@ -135,6 +154,10 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
         setState(
           () => _isLoadingTransaction = false,
         ); // reset loading state on error
+      }
+      // ✅ if session expired, logout already happened
+      if (e.toString().contains('No valid access token')) {
+        return ""; // ✅ return null so Navigator.pop never runs
       }
       // ScaffoldMessenger.of(
       //   context,
@@ -161,6 +184,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   @override
   Widget build(BuildContext context) {
     final categoryProvider = context.watch<CategoryProvider>();
+    final currencyProvider = context.watch<CurrencyProvider>();
 
     if (categoryProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -241,29 +265,57 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     value!.isEmpty ? "Please enter title" : null,
               ),
               const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: "Amount",
-                  errorText: _amountError,
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d{0,2}'),
+                        ),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: "Amount",
+                        errorText: _amountError,
+                        helperText: "e.g. 2500.00",
+                        suffixText: currencyProvider.currencyCode,
 
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? "Please enter amount" : null,
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) =>
+                          value!.isEmpty ? "Please enter amount" : null,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                ],
               ),
+
               const SizedBox(height: 16.0),
 
               // Category Dropdown
               CategoryGrid(
                 categories: categoryProvider.categories,
                 selectedCategoryId: categoryProvider.selectedCategoryId,
-                onCategorySelected: categoryProvider.setSelectedCategoryId,
+                onCategorySelected: (id) {
+                  categoryProvider.setSelectedCategoryId(id);
+                  setState(() {
+                    _categoryError = null; // Clear error on selection
+                  });
+                },
                 onAddCategory: () => _openCreateCategoryScreen(),
                 isIncome: _isIncome,
               ),
-
+              // Show category error if exists
+              if (_categoryError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    _categoryError!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
               // DropdownButtonFormField<int>(
               //   initialValue: categoryProvider
               //       .selectedCategoryId, // Set the initial selected value
@@ -307,21 +359,18 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                       ? null // Disable button while loading
                       : () async {
                           if (_formKey.currentState!.validate()) {
+                            FocusScope.of(
+                              context,
+                            ).unfocus(); // dismiss keyboard first
+
                             final result = await _addTransaction();
                             if (!mounted) return;
+                            if (result == "") return;
+
                             Navigator.pop(context, result ?? "success");
                           }
                         },
-                  child: _isLoadingTransaction
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text("Save Transaction"),
+                  child: const Text("Save Transaction"),
                 ),
               ),
             ],

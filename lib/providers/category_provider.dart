@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 class CategoryProvider extends ChangeNotifier {
   List<Category> _categories = [];
-  bool _isLoading = false;
-  bool _isLoaded = false;
+  bool _isLoading = false; // Track loading state
+  bool _isLoaded = false; // Track if categories have been loaded at least once
   int? _selectedCategoryId;
   String? _error;
 
@@ -142,6 +142,57 @@ class CategoryProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // Update an existing category and refresh the list
+
+  Future<bool> updateCategoryProvider(Category category) async {
+    print("Updating category: ${category.name}");
+    try {
+      final category_service = CategoryService();
+      final updatedCategory = await category_service.updateCategory(category);
+      if (updatedCategory != null) {
+        // Refresh the category list
+        final index = _categories.indexWhere(
+          (cat) => cat.id == updatedCategory.id,
+        );
+        if (index != -1) {
+          _categories[index] =
+              updatedCategory; // Update the category in the list
+          notifyListeners();
+        }
+        return true; // Return true if update was successful
+      } else {
+        _error = "Failed to update category";
+        return false;
+      }
+    } catch (e) {
+      print("Error updating category: $e");
+      _error = "Failed to update category: $e";
+      return false;
+    }
+  }
+
+  // Delete a category and refresh the list
+  Future<bool> deleteCategoryProvider(int categoryId) async {
+    print("Deleteing category with ID: $categoryId");
+    try {
+      final categoryService = CategoryService();
+      final success = await categoryService.deleteCategory(categoryId);
+      if (success) {
+        // Refresh the category from list
+        _categories.removeWhere((cat) => cat.id == categoryId);
+        notifyListeners();
+        return true;
+      } else {
+        _error = "Failed to delete category";
+        return false;
+      }
+    } catch (e) {
+      print("Error deleting category: $e");
+      _error = "Failed to delete category: $e";
+      return false;
     }
   }
 }

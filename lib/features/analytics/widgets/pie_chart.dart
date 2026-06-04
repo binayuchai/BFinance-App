@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:bfinance/utils/category_color.dart';
+import 'package:bfinance/core/utils/category_color.dart';
 import 'package:bfinance/features/transaction/helper/transaction_summary.dart';
 import 'package:intl/intl.dart';
 

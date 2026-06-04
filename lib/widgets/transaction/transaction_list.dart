@@ -1,36 +1,9 @@
+import 'package:bfinance/core/utils/amount_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
-import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/widgets/forms/edit_transaction_form.dart';
-// class TransactionList extends  {
-//   final List<Transaction> transactions;
-//   const TransactionList({super.key, required this.transactions});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListView.builder(
-//       itemCount: transactions.length,
-//       itemBuilder: (context, index) {
-//         final tx = transactions[index];
-
-//         return ListTile(
-//           leading: tx.icon,
-//           title: Text(tx.title, style: TextStyle(fontWeight: FontWeight.w500)),
-//           subtitle: Text(
-//             "USD ${tx.amount}",
-//             style: TextStyle(color: tx.isIncome ? Colors.green : Colors.red),
-//           ),
-//           trailing: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [Text(tx.date), Text(tx.time)],
-//           ),
-//         );
-//       },
-//     );
-//   }
-// }
+import 'package:bfinance/core/utils/datetime_formatter.dart';
 
 class TransactionList extends StatefulWidget {
   const TransactionList({super.key});
@@ -106,13 +79,16 @@ class _TransactionListState extends State<TransactionList> {
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             subtitle: Text(
-              "USD ${tx.amount}",
+              AmountFormatter.formatAmount(tx.amount),
               style: TextStyle(color: tx.isIncome ? Colors.green : Colors.red),
             ),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [Text(tx.date), Text(tx.time)],
+              children: [
+                Text(DateTimeFormatter.formatDate(tx.date)),
+                Text(DateTimeFormatter.formatTime(tx.time)),
+              ],
             ),
           ),
         );

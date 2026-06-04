@@ -1,7 +1,9 @@
+import 'package:bfinance/core/utils/datetime_formatter.dart';
 import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bfinance/core/utils/amount_formatter.dart';
 
 class CategoryExpenses extends StatefulWidget {
   const CategoryExpenses({super.key});
@@ -34,13 +36,16 @@ class _CategoryExpensesState extends State<CategoryExpenses> {
           leading: tx.icon,
           title: Text(tx.title, style: TextStyle(fontWeight: FontWeight.w500)),
           subtitle: Text(
-            "USD ${tx.amount}",
+            AmountFormatter.formatAmount(tx.amount),
             style: TextStyle(color: Colors.red),
           ),
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [Text(tx.date), Text(tx.time)],
+            children: [
+              Text(DateTimeFormatter.formatDate(tx.date)),
+              Text(DateTimeFormatter.formatTime(tx.time)),
+            ],
           ),
         );
       },

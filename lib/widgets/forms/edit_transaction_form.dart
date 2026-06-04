@@ -1,6 +1,8 @@
+import 'package:bfinance/core/validators/amount_validator.dart';
 import 'package:bfinance/features/category/widgets/add_category.dart';
 import 'package:bfinance/providers/category_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/features/transaction/models/transaction.dart';
@@ -26,7 +28,9 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
   late final TextEditingController _noteController;
   bool isLoading = false;
   String? _amountError; // To hold validation error message for amount field
-
+  String?
+  _categoryError; // To hold validation error message for category selection
+  String? titleError; // To hold validation error message for title field
   @override
   void initState() {
     super.initState();
@@ -52,6 +56,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
     _titleController.dispose();
     _amountController.dispose();
     _noteController.dispose();
+
     super.dispose();
   }
 
@@ -80,14 +85,22 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
     });
     try {
       //validate amount
-      double? amount;
-      try {
-        amount = double.parse(_amountController.text);
-      } catch (e) {
-        setState(() {
-          _amountError = "Please enter a valid number";
-          isLoading = false;
-        });
+      final amount = AmountValidator.validateAndParse(_amountController.text, (
+        error,
+      ) {
+        if (mounted) {
+          setState(() {
+            _amountError = error;
+          });
+        }
+      });
+      if (amount == null) {
+        if (mounted) {
+          //  ensure we are still in the widget context before updating state
+          setState(() {
+            isLoading = false; // reset loading state on validation failure
+          });
+        }
         return;
       }
 
@@ -96,10 +109,9 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
       if (categoryProvider.selectedCategoryId == null) {
         setState(() {
           isLoading = false;
+          _categoryError = "Please select a category";
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select a category")),
-        );
+
         return;
       }
 
@@ -131,6 +143,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Transaction updated successfully")),
         );
+        if (!mounted) return;
         Navigator.pop(context, true); // Return true to indicate success
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -215,9 +228,13 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                ],
                 decoration: InputDecoration(
                   labelText: "Amount",
                   errorText: _amountError,
+                  helperText: "e.g. 2500.00",
 
                   border: const OutlineInputBorder(),
                 ),
@@ -234,7 +251,15 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
                 onAddCategory: () => _openCreateCategoryScreen(),
                 isIncome: _isIncome,
               ),
-
+              // Show category error if exists
+              if (_categoryError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    _categoryError!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
               const SizedBox(height: 16.0),
 
               TextFormField(
@@ -255,6 +280,10 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
                       ? null // Disable button while loading
                       : () async {
                           if (_formKey.currentState!.validate()) {
+                            FocusScope.of(
+                              context,
+                            ).unfocus(); // dismiss keyboard first
+
                             ScaffoldMessenger.of(
                               context,
                             ).clearSnackBars(); //  clear queue first

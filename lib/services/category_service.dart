@@ -99,7 +99,7 @@ class CategoryService {
     }
   }
 
-  Future<bool> updateCategory(Category category) async {
+  Future<Category?> updateCategory(Category category) async {
     try {
       final headers = await api.authHeaders();
       final response = await http.put(
@@ -111,15 +111,15 @@ class CategoryService {
       print("Update category response body: ${response.body}");
       if (response.statusCode == 200) {
         print("Category updated successfully.");
-        return true;
+        return Category.fromJson(jsonDecode(response.body));
       } else {
         print("Failed to update category. Status code: ${response.statusCode}");
         print("Response body: ${response.body}");
-        return false;
+        return null;
       }
     } catch (e) {
       print("Error updating category: $e");
-      return false;
+      return null;
     }
   }
 
