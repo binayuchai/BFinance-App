@@ -1,31 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:bfinance/providers/currency_provider.dart';
+import 'package:bfinance/navigation/bottom_nav.dart';
+import 'package:bfinance/features/dashboard/helper/section_header.dart';
+import 'package:currency_picker/currency_picker.dart';
 
-class Settings extends StatefulWidget {
+class Settings extends StatelessWidget {
   const Settings({super.key});
 
   @override
-  State<Settings> createState() => _SettingsState();
-}
-
-class _SettingsState extends State<Settings> {
-  @override
   Widget build(BuildContext context) {
+    final currencyProvider = context.watch<CurrencyProvider>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Settings Page'),
-            ElevatedButton(
-              onPressed: () {
-                // Add your settings logic here
-                print('Settings button pressed');
-              },
-              child: const Text('Save Settings'),
-            ),
-          ],
-        ),
+      appBar: AppBar(title: Text("Settings")),
+      body: ListView(
+        children: [
+          //Account Settings
+          sectionHeader("Account Settings"),
+          ListTile(
+            leading: Icon(Icons.account_circle),
+            title: Text("Account"),
+            subtitle: Text("Manage your account settings"),
+            onTap: () {
+              // Navigate to account settings page
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.security),
+            title: Text("Privacy & Security"),
+            subtitle: Text("Manage your privacy and security settings"),
+            onTap: () {
+              // Navigate to privacy & security settings page
+            },
+          ),
+          sectionHeader("App"),
+          ListTile(
+            leading: Icon(Icons.notifications),
+            title: Text("Notifications"),
+            subtitle: Text("Manage notification preferences"),
+            onTap: () {
+              // Navigate to notification settings page
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.palette),
+            title: Text("Appearance"),
+            subtitle: Text("Customize the app's look and feel"),
+            onTap: () {
+              // Navigate to appearance settings page
+            },
+          ),
+          //Preferences
+          sectionHeader("Preferences"),
+          ListTile(
+            leading: Icon(Icons.currency_exchange),
+            title: Text("Currency"),
+            subtitle: Text("Select your preferred currency"),
+            trailing: const Icon(Icons.chevron_right),
+
+            onTap: () {
+              // Show currency selection dialog
+              showCurrencyPicker(
+                context: context,
+                showFlag: true,
+                showCurrencyName: true,
+                showCurrencyCode: true,
+                onSelect: (Currency currency) {
+                  currencyProvider.setCurrency(currency.code);
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
