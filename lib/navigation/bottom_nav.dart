@@ -1,7 +1,7 @@
 import 'package:bfinance/features/analytics/chart_analytics.dart';
 import 'package:bfinance/features/category/category.dart';
 import 'package:bfinance/features/dashboard/view/dashboard.dart';
-import 'package:bfinance/features/dashboard/view/widgets/settings.dart';
+import 'package:bfinance/features/settings/settings_screen.dart';
 import 'package:bfinance/features/dashboard/view/widgets/transaction.dart';
 import 'package:bfinance/providers/category_provider.dart';
 

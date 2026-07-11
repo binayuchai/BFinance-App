@@ -4,6 +4,7 @@ import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bfinance/providers/currency_provider.dart';
 
 class CategoryIncome extends StatefulWidget {
   const CategoryIncome({super.key});
@@ -16,6 +17,7 @@ class _CategoryIncomeState extends State<CategoryIncome> {
   @override
   Widget build(BuildContext context) {
     final transactionProvider = context.watch<TransactionProvider>();
+    final currencyCode = context.watch<CurrencyProvider>().currencyCode;
 
     if (transactionProvider.isLoading) {
       return Center(child: Text("Loading transactions..."));
@@ -36,7 +38,7 @@ class _CategoryIncomeState extends State<CategoryIncome> {
           leading: tx.icon,
           title: Text(tx.title, style: TextStyle(fontWeight: FontWeight.w500)),
           subtitle: Text(
-            AmountFormatter.formatAmount(tx.amount),
+            AmountFormatter.formatAmountSync(tx.amount, currencyCode),
             style: TextStyle(color: Colors.green),
           ),
           trailing: Column(

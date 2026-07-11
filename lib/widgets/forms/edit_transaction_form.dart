@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/features/category/widgets/category_grid.dart';
-
+import 'package:bfinance/providers/currency_provider.dart';
 // TOdo list
 // make amount fields only accept digits upto Ensure that there are no more than 12 digits in total.
 
@@ -105,6 +105,8 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
       }
 
       final categoryProvider = context.read<CategoryProvider>();
+      final currencyProvider = context.read<CurrencyProvider>();
+
       //validate category selection
       if (categoryProvider.selectedCategoryId == null) {
         setState(() {
@@ -130,11 +132,15 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
         time: widget.transactions.time, // Keep existing time
         categoryId: categoryProvider.selectedCategoryId!, // Update category ID
         id: widget.transactions.id, // Keep existing ID for API update
+        currencyCode: currencyProvider.currencyCode,
       );
       // Call the provider to update the transaction
       final success = await context
           .read<TransactionProvider>()
-          .editTransactionProvider(updatedTransaction);
+          .editTransactionProvider(
+            updatedTransaction,
+            currencyProvider: currencyProvider,
+          );
       if (!mounted) return;
       setState(() {
         isLoading = false;
@@ -235,6 +241,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
                   labelText: "Amount",
                   errorText: _amountError,
                   helperText: "e.g. 2500.00",
+                  suffixText: context.watch<CurrencyProvider>().currencyCode,
 
                   border: const OutlineInputBorder(),
                 ),

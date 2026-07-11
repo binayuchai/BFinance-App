@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/widgets/forms/edit_transaction_form.dart';
 import 'package:bfinance/core/utils/datetime_formatter.dart';
+import 'package:bfinance/providers/currency_provider.dart';
 
 class TransactionList extends StatefulWidget {
   const TransactionList({super.key});
@@ -18,13 +19,17 @@ class _TransactionListState extends State<TransactionList> {
     super.initState();
     // Load transactions or perform any initialization here
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TransactionProvider>().fetchTransactions();
+      final currencyProvider = context.read<CurrencyProvider>();
+      context.read<TransactionProvider>().fetchTransactions(
+        currencyProvider: currencyProvider,
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final transactionProvider = context.watch<TransactionProvider>();
+    final currencyProvider = context.watch<CurrencyProvider>();
     if (transactionProvider.isLoading) {
       return Center(child: Text("Loading transactions..."));
     }
@@ -79,7 +84,10 @@ class _TransactionListState extends State<TransactionList> {
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             subtitle: Text(
-              AmountFormatter.formatAmount(tx.amount),
+              AmountFormatter.formatAmountSync(
+                transactionProvider.getConvertedAmount(tx.id!),
+                currencyProvider.currencyCode,
+              ),
               style: TextStyle(color: tx.isIncome ? Colors.green : Colors.red),
             ),
             trailing: Column(

@@ -5,7 +5,13 @@ import 'package:fl_chart/fl_chart.dart';
 class WeeklyChart extends StatelessWidget {
   final List<double> values;
   final List<String> labels;
-  const WeeklyChart({super.key, required this.values, required this.labels});
+  final String currencyCode;
+  const WeeklyChart({
+    super.key,
+    required this.values,
+    required this.labels,
+    required this.currencyCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +41,7 @@ class WeeklyChart extends StatelessWidget {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    ChartHelper.formatCurrency(value),
+                    ChartHelper.formatCurrency(value, currencyCode),
                     style: const TextStyle(fontSize: 10),
                   );
                 },
@@ -93,7 +99,7 @@ class WeeklyChart extends StatelessWidget {
   //             showTitles: true,
   //             getTitlesWidget: (value, meta) {
   //               return Text(
-  //                 ChartHelper.formatCurrency(value),
+  //                 ChartHelper.formatCurrency(value, currencyCode),
   //                 style: const TextStyle(fontSize: 10),
   //               );
   //             },

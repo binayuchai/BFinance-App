@@ -5,7 +5,13 @@ import 'package:flutter/material.dart';
 class MonthlyChart extends StatelessWidget {
   final List<double> values;
   final List<String> labels;
-  const MonthlyChart({super.key, required this.values, required this.labels});
+  final String currencyCode;
+  const MonthlyChart({
+    super.key,
+    required this.values,
+    required this.labels,
+    required this.currencyCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +100,7 @@ class MonthlyChart extends StatelessWidget {
                     child: Text(
                       ChartHelper.formatCurrency(
                         value,
+                        currencyCode,
                       ), // Format Y-axis values as currency
                       style: const TextStyle(
                         fontSize: 12,
@@ -137,55 +144,3 @@ class MonthlyChart extends StatelessWidget {
     );
   }
 }
-
-// Old code for reference:
-
-//  Widget buildLineChart(List<double> values, List<String> labels) {
-//     return LineChart(
-//       LineChartData(
-//         lineBarsData: [
-//           LineChartBarData(
-//             spots: List.generate(
-//               values.length,
-//               (index) => FlSpot(index.toDouble(), values[index]),
-//             ),
-//             isCurved: true,
-//             barWidth: 3,
-//             preventCurveOverShooting: true,
-//             color: Colors.blue,
-//             dotData: FlDotData(show: true), // Show dots on data points
-//           ),
-//         ],
-//         titlesData: FlTitlesData(
-//           // Configure left titles (Y-axis)
-//           leftTitles: AxisTitles(
-//             sideTitles: SideTitles(
-//               showTitles: true,
-//               interval: null,
-//               getTitlesWidget: (value, meta) {
-//                 return Text(
-//                   ChartHelper.formatCurrency(
-//                     value,
-//                   ), // Format Y-axis values as currency
-//                   style: const TextStyle(fontSize: 10),
-//                 );
-//               },
-//             ),
-//           ),
-//           bottomTitles: AxisTitles(
-//             sideTitles: SideTitles(
-//               showTitles: true,
-//               getTitlesWidget: (value, meta) {
-//                 int index = value.toInt();
-//                 if (index < labels.length) {
-//                   return Text(labels[index]);
-//                 } else {
-//                   return const Text("");
-//                 }
-//               },
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }

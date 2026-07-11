@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'widgets/pie_chart.dart';
 import 'widgets/monthly_chart.dart';
+import 'package:bfinance/providers/currency_provider.dart';
 
 class Analytics extends StatelessWidget {
   const Analytics({super.key});
@@ -11,6 +12,7 @@ class Analytics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final summary = context.watch<TransactionProvider>().summary;
+    final currencyCode = context.watch<CurrencyProvider>().currencyCode;
 
     // double totalExpense = summary.totalExpenses;
     final List<String> days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -34,6 +36,7 @@ class Analytics extends StatelessWidget {
 
     print("Summary: ${summary.getPieChartData}");
     // Check if there's no data
+
     if (summary.totalExpenses == 0) {
       return DefaultTabController(
         length: 2,
@@ -77,10 +80,11 @@ class Analytics extends StatelessWidget {
               // ),
               const SizedBox(height: 20),
               SizedBox(
-                height: 220,
+                // 200px for the donut plus space for the category legend.
+                height: 300,
                 child: ExpenseDonutChart(
                   pieData: summary.getPieChartData,
-                  summary: summary,
+                  currencyCode: currencyCode,
                 ),
               ),
 
@@ -95,9 +99,17 @@ class Analytics extends StatelessWidget {
                 height: 300, //  height for better display of charts
                 child: TabBarView(
                   children: [
-                    WeeklyChart(values: dailyExpenses, labels: days),
+                    WeeklyChart(
+                      values: dailyExpenses,
+                      labels: days,
+                      currencyCode: currencyCode,
+                    ),
 
-                    MonthlyChart(values: monthlyExpenses, labels: months),
+                    MonthlyChart(
+                      values: monthlyExpenses,
+                      labels: months,
+                      currencyCode: currencyCode,
+                    ),
                   ],
                 ),
               ),

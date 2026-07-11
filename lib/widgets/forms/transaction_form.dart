@@ -85,6 +85,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     }
 
     final categoryProvider = context.read<CategoryProvider>();
+    final currencyProvider = context.read<CurrencyProvider>();
 
     // Validate category selection
     if (categoryProvider.selectedCategoryId == null) {
@@ -108,6 +109,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       note: _noteController.text == "" ? null : _noteController.text,
       categoryId: categoryProvider.selectedCategoryId ?? 1,
       category: selectedCategory,
+      currencyCode: currencyProvider.currencyCode,
       // category: selectedCategory,
       // categoryId: selectedCategory.id!,
     );
@@ -132,7 +134,10 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     try {
       final response = await context
           .read<TransactionProvider>()
-          .addTransactionProvider(transactionData);
+          .addTransactionProvider(
+            transactionData,
+            currencyProvider: currencyProvider,
+          );
 
       if (response) {
         if (mounted) {

@@ -5,18 +5,23 @@ class TransactionSummary {
   final double totalIncome;
   final double totalExpenses;
   final List<Transaction> transactions;
+  final Map<int, double> convertedAmounts; //  converted amounts
 
   // Constructor to access the fields data
   TransactionSummary({
     required this.totalIncome,
     required this.totalExpenses,
     required this.transactions,
+    required this.convertedAmounts,
   });
 
   double get netBalance => totalIncome - totalExpenses;
 
   // factory method to create TransactionSummary from a list of transactions
-  factory TransactionSummary.fromTransactions(List<Transaction> transactions) {
+  factory TransactionSummary.fromTransactions(
+    List<Transaction> transactions,
+    Map<int, double> convertedAmounts,
+  ) {
     double income = 0.0;
     double expenses = 0.0;
 
@@ -24,12 +29,15 @@ class TransactionSummary {
 
     for (var tx in transactions) {
       final date = DateTime.parse(tx.date).toLocal();
+      final amount =
+          convertedAmounts[tx.id] ??
+          tx.amount; // Use converted amount if available
       if (tx.category.type == CategoryType.income) {
-        income += tx.amount;
+        income += amount;
       } else if (tx.category.type == CategoryType.expense &&
           date.year == DateTime.now().year) {
         // Only consider expenses for the current year
-        expenses += tx.amount;
+        expenses += amount;
       }
     }
 
@@ -37,6 +45,7 @@ class TransactionSummary {
       totalIncome: income,
       totalExpenses: expenses,
       transactions: transactions,
+      convertedAmounts: convertedAmounts,
     );
   }
 
@@ -57,26 +66,29 @@ Method for Pie Chart Data
       final date = DateTime.parse(
         tx.date,
       ).toLocal(); // Parse the date string to DateTime
+      final amount =
+          convertedAmounts[tx.id] ??
+          tx.amount; // Use converted amount if available
 
-      print("Now: $now  month: ${now.month}  year: ${now.year}");
-      print("Transaction month: ${date.month}  year: ${date.year}");
-      print(
-        "date of transaction: ${tx.date}, parsed date: $date, category: ${tx.category.name}, amount: ${tx.amount}, type: ${tx.category.type}",
-      );
+      // print("Now: $now  month: ${now.month}  year: ${now.year}");
+      // print("Transaction month: ${date.month}  year: ${date.year}");
+      // print(
+      //   "date of transaction: ${tx.date}, parsed date: $date, category: ${tx.category.name}, amount: ${tx.amount}, type: ${tx.category.type}",
+      // );
       if (tx.category.type == CategoryType.expense &&
           date.month == now.month &&
           date.year == now.year) {
-        print(
-          "Processing transaction: ${tx.title}, Amount: ${tx.amount}, Category: ${tx.category.name}, Date: ${tx.date}",
-        );
+        // print(
+        //   "Processing transaction: ${tx.title}, Amount: ${tx.amount}, Category: ${tx.category.name}, Date: ${tx.date}",
+        // );
         String categoryKey =
             (tx.category.name != null && tx.category.name!.isNotEmpty)
             ? tx.category.name!
             : 'Uncategorized'; // Use category name or "Unknown" if null
-        data[categoryKey] = (data[categoryKey] ?? 0) + tx.amount;
-        print(
-          "Updated category: $categoryKey, Total Amount: ${data[categoryKey]}",
-        );
+        data[categoryKey] = (data[categoryKey] ?? 0) + amount;
+        // print(
+        //   "Updated category: $categoryKey, Total Amount: ${data[categoryKey]}",
+        // );
       }
     }
     print("Final data: $data");
@@ -99,11 +111,13 @@ Method for Pie Chart Data
     ); // End of the week (next Monday) at 00:00:00
     for (final tx in transactions) {
       final date = DateTime.parse(tx.date); // Parse the date string to DateTime
+      final amount =
+          convertedAmounts[tx.id] ?? tx.amount; // convertedAmount if available
       if (tx.category.type == CategoryType.expense &&
           !date.isBefore(startOfWeek) &&
           date.isBefore(endOfWeek)) {
         int dayIndex = date.weekday - 1; // converting to 0-based index
-        weeklyExpense[dayIndex] += tx.amount;
+        weeklyExpense[dayIndex] += amount;
       }
     }
     return weeklyExpense;
@@ -125,10 +139,12 @@ Method for Pie Chart Data
     final currentYear = DateTime.now().year;
     for (final tx in transactions) {
       final date = DateTime.parse(tx.date); // Parse the date string to DateTime
+      final amount =
+          convertedAmounts[tx.id] ?? tx.amount; // convertedAmount if available
       if (tx.category.type == CategoryType.expense &&
           date.year == currentYear) {
         int monthIndex = date.month - 1; // converting to 0-based index
-        monthlyExpense[monthIndex] += tx.amount;
+        monthlyExpense[monthIndex] += amount;
       }
     }
     return monthlyExpense;

@@ -1,9 +1,11 @@
+import 'package:bfinance/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/currency_provider.dart';
 import 'package:bfinance/navigation/bottom_nav.dart';
 import 'package:bfinance/features/dashboard/helper/section_header.dart';
 import 'package:currency_picker/currency_picker.dart';
+import 'package:bfinance/providers/transaction_provider.dart';
 
 class Settings extends StatelessWidget {
   const Settings({super.key});
@@ -23,6 +25,7 @@ class Settings extends StatelessWidget {
             subtitle: Text("Manage your account settings"),
             onTap: () {
               // Navigate to account settings page
+              Navigator.pushNamed(context, AppRoutes.account);
             },
           ),
           ListTile(
@@ -48,6 +51,7 @@ class Settings extends StatelessWidget {
             subtitle: Text("Customize the app's look and feel"),
             onTap: () {
               // Navigate to appearance settings page
+              Navigator.pushNamed(context, AppRoutes.appearance);
             },
           ),
           //Preferences
@@ -65,8 +69,31 @@ class Settings extends StatelessWidget {
                 showFlag: true,
                 showCurrencyName: true,
                 showCurrencyCode: true,
-                onSelect: (Currency currency) {
-                  currencyProvider.setCurrency(currency.code);
+                onSelect: (Currency currency) async {
+                  final String? error = await context
+                      .read<CurrencyProvider>()
+                      .setCurrency(currency.code);
+                  if (!context.mounted) return;
+
+                  await context.read<TransactionProvider>().convertAllAmount(
+                    currencyProvider,
+                  );
+                  if (error == null) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Currency changed to ${currency.code}"),
+                      ),
+                    );
+                  } else {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Failed to change currency: $error"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
               );
             },

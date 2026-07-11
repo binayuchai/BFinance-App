@@ -13,7 +13,7 @@ class Transaction {
   final String? note;
   final Icon? icon;
   final Category category; // Store the category object for type checking
-
+  final String currencyCode; // Store the currency code for this transaction
   Transaction({
     this.id,
     required this.title,
@@ -26,6 +26,7 @@ class Transaction {
     this.note,
     this.icon,
     required this.categoryId,
+    required this.currencyCode,
   });
 
   bool get isIncome =>
@@ -40,7 +41,8 @@ class Transaction {
       id: json['id'],
       title: json['title'],
       amount: double.parse(json['amount']),
-
+      currencyCode:
+          json['currency_code'] ?? 'USD', // Default to USD if not provided
       note: json['description'] ?? '',
       categoryId: json['category'], // Store category ID for API interactions
       category: Category.fromJson(
@@ -58,6 +60,7 @@ class Transaction {
       'id': id,
       'title': title,
       'amount': amount,
+      'currency_code': currencyCode,
       'description': note ?? '',
       'category': categoryId,
       'transaction_type': isIncome ? 'credit' : 'debit',

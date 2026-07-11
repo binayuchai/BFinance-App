@@ -1,6 +1,7 @@
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bfinance/providers/currency_provider.dart';
 
 class BalanceCard extends StatefulWidget {
   const BalanceCard({super.key});
@@ -13,6 +14,7 @@ class _BalanceCardState extends State<BalanceCard> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransactionProvider>();
+    final currencyProvider = context.watch<CurrencyProvider>();
     final summary = provider.summary;
     return Card(
       margin: EdgeInsets.all(16.0),
@@ -34,7 +36,7 @@ class _BalanceCardState extends State<BalanceCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "USD ${summary.netBalance.toStringAsFixed(2)}",
+                  "${currencyProvider.currencyCode} ${summary.netBalance.toStringAsFixed(2)}",
                   style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
@@ -55,7 +57,9 @@ class _BalanceCardState extends State<BalanceCard> {
                     Column(
                       children: [
                         Text("Income"),
-                        Text("USD ${summary.totalIncome.toStringAsFixed(2)}"),
+                        Text(
+                          "${currencyProvider.currencyCode} ${summary.totalIncome.toStringAsFixed(2)}",
+                        ),
                       ],
                     ),
                   ],
@@ -67,7 +71,9 @@ class _BalanceCardState extends State<BalanceCard> {
                     Column(
                       children: [
                         Text("Expenses"),
-                        Text("USD ${summary.totalExpenses.toStringAsFixed(2)}"),
+                        Text(
+                          "${currencyProvider.currencyCode} ${summary.totalExpenses.toStringAsFixed(2)}",
+                        ),
                       ],
                     ),
                   ],
