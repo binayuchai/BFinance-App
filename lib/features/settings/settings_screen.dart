@@ -34,6 +34,7 @@ class Settings extends StatelessWidget {
             subtitle: Text("Manage your privacy and security settings"),
             onTap: () {
               // Navigate to privacy & security settings page
+              Navigator.pushNamed(context, AppRoutes.privacy);
             },
           ),
           sectionHeader("App"),

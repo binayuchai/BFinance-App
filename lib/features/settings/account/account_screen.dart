@@ -3,6 +3,7 @@ import 'package:bfinance/features/settings/account/widgets/edit_name.dart';
 import 'package:bfinance/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bfinance/features/settings/helper/section_label.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -99,7 +100,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
                 const Divider(height: 1),
                 //secutriy section
-                const _SectionLabel("Security"),
+                const SectionLabel("Security"),
                 ListTile(
                   leading: const Icon(Icons.lock_outline),
                   title: const Text("Change password"),
@@ -122,7 +123,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
 
                 //danger zone
-                const _SectionLabel("Account"),
+                const SectionLabel("Account"),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text(
@@ -157,27 +158,6 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ],
             ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.5,
-          color: Theme.of(context).colorScheme.outline,
-        ),
-      ),
     );
   }
 }

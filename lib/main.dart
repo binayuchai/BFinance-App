@@ -43,6 +43,7 @@ class MyApp extends StatelessWidget {
         ), //  Holds & exposes theme state; initializes on app start
       ],
       child: Consumer<ThemeProvider>(
+        // The main use of Consumer is to rebuild only a specific  section of UI when a Provider changes like context.watch<ThemeProvider>() .
         builder: (context, themeProvider, _) {
           return MaterialApp(
             title: 'BFinance Manager',
