@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -26,6 +28,25 @@ class ApiService {
   // final String baseUrl = 'http://192.168.3.174:8000/user/api';
   final String baseUrl = 'https://footpad-oasis-tipped.ngrok-free.dev/user/api';
   final storage = FlutterSecureStorage();
+
+  String getFriendlyErrorMessage(Object error) {
+    if (error is HandshakeException) {
+      return 'Unable to connect securely to the server. Please try again later.';
+    }
+    if (error is SocketException) {
+      return 'No internet connection. Please check your network and try again.';
+    }
+    if (error is TimeoutException) {
+      return 'The request took too long. Please try again.';
+    }
+    if (error is HttpException) {
+      return 'The server could not be reached. Please try again later.';
+    }
+    if (error is FormatException) {
+      return 'The server returned an unexpected response. Please try again.';
+    }
+    return 'Something went wrong. Please try again.';
+  }
 
   //Get token for authenticated requests
   Future<String?> getAccessToken() async {
@@ -78,6 +99,47 @@ class ApiService {
       'Authorization': 'Bearer $token',
     };
   }
+
+  //Authorize Requests to API
+  Future<http.Response> authorizedRequest(
+    Future<http.Response> Function(Map<String, String>) request,
+  ) async {
+    final headers = await authHeaders();
+    final response = await request(headers);
+    if (response.statusCode == 401) {
+      // Unauthorized - token might be invalid or expired
+
+      await logout(sessionExpired: true);
+
+      throw Exception('Session expired. Please login again.');
+    }
+    return response;
+  }
+
+  //Authorize Request Wrapper for handling errors
+  // Future<ApiResult> authorizedRequestWithErrorHandling(
+  //   Future<http.Response> Function(Map<String, String>) request,
+  // ) async {
+  //   try {
+  //     final response = await authorizedRequest(request);
+  //     if (response.statusCode >= 200 && response.statusCode < 300) {
+  //       try {
+  //         final data = jsonDecode(response.body);
+  //         return ApiResult(success: true, data: data);
+  //       } catch (e) {
+  //         return ApiResult(
+  //           success: true,
+  //           successMessage: 'Request successful but something went wrong.',
+  //         );
+  //       }
+  //     }
+  //   } catch (e) {
+  //     return ApiResult(
+  //       success: false,
+  //       errorMessage: getFriendlyErrorMessage(e),
+  //     );
+  //   }
+  // }
   //Register User
 
   Future<ApiResult> registerUser(
@@ -86,59 +148,79 @@ class ApiService {
     String password,
     String confirmPassword,
   ) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/register/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': username,
-        'email': email,
-        'password': password,
-        'password2': confirmPassword,
-      }),
-    );
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      await storage.write(key: 'access_token', value: data['token']['access']);
-      await storage.write(
-        key: 'refresh_token',
-        value: data['token']['refresh'] ?? '',
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/register/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': username,
+          'email': email,
+          'password': password,
+          'password2': confirmPassword,
+        }),
       );
-      return ApiResult(success: true);
-    } else {
-      final errorMessage = _parseErrorMessage(
-        response.body,
-        // context: "Register",
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        await storage.write(
+          key: 'access_token',
+          value: data['token']['access'],
+        );
+        await storage.write(
+          key: 'refresh_token',
+          value: data['token']['refresh'] ?? '',
+        );
+        return ApiResult(success: true);
+      } else {
+        final errorMessage = _parseErrorMessage(
+          response.body,
+          // context: "Register",
+        );
+        return ApiResult(success: false, errorMessage: errorMessage);
+      }
+    } catch (e) {
+      return ApiResult(
+        success: false,
+        errorMessage: getFriendlyErrorMessage(e),
       );
-      return ApiResult(success: false, errorMessage: errorMessage);
     }
   }
 
   //Login User
 
   Future<ApiResult> loginUser(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/login/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-    print("Response during login: $response");
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      await storage.write(key: 'access_token', value: data['token']['access']);
-      await storage.write(
-        key: 'refresh_token',
-        value: data['token']['refresh'] ?? '',
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/login/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
       );
+      print("Response during login: $response");
 
-      return ApiResult(success: true);
-    } else {
-      // Parse error message from backend response
-      final errorMessage = _parseErrorMessage(
-        response.body,
-        // context: "Login"
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await storage.write(
+          key: 'access_token',
+          value: data['token']['access'],
+        );
+        await storage.write(
+          key: 'refresh_token',
+          value: data['token']['refresh'] ?? '',
+        );
+
+        return ApiResult(success: true);
+      } else {
+        // Parse error message from backend response
+        final errorMessage = _parseErrorMessage(
+          response.body,
+          // context: "Login"
+        );
+        return ApiResult(success: false, errorMessage: errorMessage);
+      }
+    } catch (e) {
+      return ApiResult(
+        success: false,
+        errorMessage: getFriendlyErrorMessage(e),
       );
-      return ApiResult(success: false, errorMessage: errorMessage);
     }
   }
 
@@ -382,7 +464,7 @@ class ApiService {
   }
 
   //Get user profile
-  Future<Map<String, dynamic>?> getProfile() async {
+  Future<ApiResult> getProfile() async {
     try {
       final headers = await authHeaders();
       final response = await http.get(
@@ -390,20 +472,29 @@ class ApiService {
         headers: headers,
       );
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return ApiResult(success: true, data: jsonDecode(response.body));
       } else if (response.statusCode == 401) {
         // Unauthorized - token might be invalid or expired
         await logout(sessionExpired: true);
-        return null;
+        return ApiResult(
+          success: false,
+          errorMessage: "Session expired. Please login again.",
+        );
       } else {
         print(
           "Failed to fetch profile. Status code: ${response.statusCode}, Body: ${response.body}",
         );
-        return null;
+        return ApiResult(
+          success: false,
+          errorMessage: "Failed to fetch profile.",
+        );
       }
     } catch (e) {
       print("Error fetching profile: $e");
-      return null;
+      return ApiResult(
+        success: false,
+        errorMessage: getFriendlyErrorMessage(e),
+      );
     }
   }
 
@@ -442,8 +533,7 @@ class ApiService {
     } catch (e) {
       return ApiResult(
         success: false,
-        errorMessage:
-            "An error occurred while updating profile. Please try again.",
+        errorMessage: getFriendlyErrorMessage(e),
       );
     }
   }
@@ -480,7 +570,10 @@ class ApiService {
         );
       }
     } catch (e) {
-      return ApiResult(success: false, errorMessage: e.toString());
+      return ApiResult(
+        success: false,
+        errorMessage: getFriendlyErrorMessage(e),
+      );
     }
   }
 }

@@ -2,7 +2,6 @@ import 'package:bfinance/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/currency_provider.dart';
-import 'package:bfinance/navigation/bottom_nav.dart';
 import 'package:bfinance/features/dashboard/helper/section_header.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
@@ -44,6 +43,7 @@ class Settings extends StatelessWidget {
             subtitle: Text("Manage notification preferences"),
             onTap: () {
               // Navigate to notification settings page
+              Navigator.pushNamed(context, AppRoutes.notification);
             },
           ),
           ListTile(

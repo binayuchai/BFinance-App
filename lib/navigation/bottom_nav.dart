@@ -4,6 +4,8 @@ import 'package:bfinance/features/dashboard/view/dashboard.dart';
 import 'package:bfinance/features/settings/settings_screen.dart';
 import 'package:bfinance/features/dashboard/view/widgets/transaction.dart';
 import 'package:bfinance/providers/category_provider.dart';
+import 'package:bfinance/providers/currency_provider.dart';
+import 'package:bfinance/providers/transaction_provider.dart';
 
 import 'package:bfinance/widgets/forms/transaction_form.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +31,18 @@ class _BottomNavState extends State<BottomNav> {
     const Category(),
     const Settings(),
   ];
+
+  // @override
+  // void initState() {
+  //   super.initState();
+
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     final currencyProvider = context.read<CurrencyProvider>();
+  //     context.read<TransactionProvider>().fetchTransactions(
+  //       currencyProvider: currencyProvider,
+  //     );
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {

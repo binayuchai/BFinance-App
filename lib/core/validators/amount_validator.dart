@@ -17,8 +17,12 @@ class AmountValidator {
     final parts = value.split('.');
     final integerPartLength = parts[0].length;
     final decimalPartLength = parts.length > 1 ? parts[1].length : 0;
-    if (integerPartLength + decimalPartLength > 12) {
-      onError("Amount cannot exceed 12 digits including decimals");
+    if (integerPartLength > 10) {
+      onError("Amount cannot exceed 10 digits before decimals");
+      return null;
+    }
+    if (decimalPartLength > 2) {
+      onError("Amount cannot have more than 2 decimal places");
       return null;
     }
     return amount; // valid

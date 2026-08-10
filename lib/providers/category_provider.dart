@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:bfinance/features/category/data/models/category.dart';
 import 'package:bfinance/services/api_service.dart';
 import 'package:bfinance/services/category_service.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CategoryProvider extends ChangeNotifier {
   List<Category> _categories = [];
@@ -50,6 +53,13 @@ class CategoryProvider extends ChangeNotifier {
       print("Response from getCategories: $response");
       if (response.isNotEmpty) {
         _categories = response;
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'cached_categories',
+          jsonEncode(_categories.map((e) => e.categoryToJson()).toList()),
+        );
+
         print("Fetched categories: $_categories");
         if (_categories.isNotEmpty) {
           _selectedCategoryId = _categories.first.id;
@@ -98,9 +108,62 @@ class CategoryProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> initialize() async {
+    //try to load cached categories on app start (fast, works offline)
+    await loadCachedCategories();
+
+    //then fetch from backend to ensure we have the latest data
+    // try {
+    //   final token = await ApiService().getAccessToken();
+    //   if (token != null) {
+    //     //reset and fetch categories from backend
+    //     _isLoaded = false;
+    //     await fetchCategories();
+    //   }
+    // } catch (e) {
+    //   debugPrint("Error initializing categories: $e");
+    // }
+  }
+
+  Future<void> loadCachedCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedData = prefs.getString('cached_categories');
+    print("🔍 DEBUG loadCachedCategories:");
+    print("   Cached data exists? ${cachedData != null}");
+    print("   Cached data: $cachedData"); //
+    if (cachedData != null) {
+      try {
+        final List<dynamic> jsonList = jsonDecode(cachedData);
+        _categories = jsonList
+            .map((json) => Category.fromJson(json as Map<String, dynamic>))
+            .toList();
+        if (_categories.isNotEmpty) {
+          _selectedCategoryId = _categories.first.id;
+        }
+        _isLoaded = true;
+        notifyListeners();
+      } catch (e) {
+        print("Error loading cached categories: $e");
+      }
+    }
+  }
+
   // Ensure categories are loaded
   Future<void> ensureLoaded() async {
-    await fetchCategories();
+    // If categories are not loaded, fetch them
+    if (_categories.isNotEmpty) return; // If already loaded, do nothing
+
+    // //Try to load from cache first(fast,works offline)
+    // await loadCachedCategories();
+
+    //if cache is empty and we have internet, fetch from backend
+    if (_categories.isEmpty) {
+      print("📡 Cache empty, fetching from backend...");
+      final token = await ApiService().getAccessToken();
+      if (token != null) {
+        await fetchCategories();
+      }
+    }
   }
 
   // Seed default categories

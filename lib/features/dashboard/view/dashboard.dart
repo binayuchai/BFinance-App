@@ -1,7 +1,9 @@
-
 import 'package:bfinance/features/dashboard/view/widgets/balance_card.dart';
+import 'package:bfinance/providers/currency_provider.dart';
+import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/widgets/transaction/transaction_list.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DashboardWidget extends StatelessWidget {
   const DashboardWidget({super.key});
@@ -12,20 +14,18 @@ class DashboardWidget extends StatelessWidget {
       appBar: AppBar(title: const Text('BFinance Tracker')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
         children: [
           BalanceCard(),
-          SizedBox(height: 20),
-          Padding(
+          const SizedBox(height: 20),
+          const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              "Recent Transactions",
+              'Recent Transactions',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
-          SizedBox(height: 20),
-
-          Expanded(child: TransactionList()),
+          const SizedBox(height: 20),
+          const Expanded(child: TransactionList()),
         ],
       ),
     );

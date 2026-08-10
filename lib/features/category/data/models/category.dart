@@ -35,6 +35,7 @@ class Category {
   // Function to convert Model to JSON (POST to API)
   Map<String, dynamic> categoryToJson() {
     return {
+      'id': id,
       'name': name,
       'category_type': type == CategoryType.income
           ? 'income'

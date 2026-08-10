@@ -1,5 +1,6 @@
 import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/features/category/data/models/category.dart';
+import 'package:flutter/material.dart';
 
 class TransactionSummary {
   final double totalIncome;
@@ -28,14 +29,23 @@ class TransactionSummary {
     // Calculate total income and expenses
 
     for (var tx in transactions) {
-      final date = DateTime.parse(tx.date).toLocal();
+      // final date = DateTime.parse(tx.date).toLocal();
+      final parsedDate = _parseDate(
+        tx.date,
+      ); // Use the helper function to parse the date
+      if (parsedDate == null) {
+        debugPrint(
+          "Warning: Unable to parse date for transaction: ${tx.title}, date string: ${tx.date}",
+        );
+        continue; // Skip this transaction if the date is invalid
+      }
       final amount =
           convertedAmounts[tx.id] ??
           tx.amount; // Use converted amount if available
       if (tx.category.type == CategoryType.income) {
         income += amount;
       } else if (tx.category.type == CategoryType.expense &&
-          date.year == DateTime.now().year) {
+          parsedDate.year == DateTime.now().year) {
         // Only consider expenses for the current year
         expenses += amount;
       }
@@ -82,8 +92,8 @@ Method for Pie Chart Data
         //   "Processing transaction: ${tx.title}, Amount: ${tx.amount}, Category: ${tx.category.name}, Date: ${tx.date}",
         // );
         String categoryKey =
-            (tx.category.name != null && tx.category.name!.isNotEmpty)
-            ? tx.category.name!
+            (tx.category.name != null && tx.category.name.isNotEmpty)
+            ? tx.category.name
             : 'Uncategorized'; // Use category name or "Unknown" if null
         data[categoryKey] = (data[categoryKey] ?? 0) + amount;
         // print(
@@ -148,5 +158,14 @@ Method for Pie Chart Data
       }
     }
     return monthlyExpense;
+  }
+
+  // Helper function to parse date strings safely
+  static DateTime? _parseDate(String? dateString) {
+    if (dateString == null || dateString.trim().isEmpty) {
+      return null; // Return current date if null or empty
+    }
+    final normalized = dateString.trim().replaceAll('/', '-');
+    return DateTime.tryParse(normalized);
   }
 }

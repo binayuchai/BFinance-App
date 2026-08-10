@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart' as api;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,8 +29,33 @@ class _SplashScreenState extends State<SplashScreen> {
     if (result[1] == true) {
       if (!mounted) return;
 
-      print("Navigating to dashboard");
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      //after valid token logged in - check biometric to access dashboard
+      final prefs = await SharedPreferences.getInstance();
+      final biometricEnabled = prefs.getBool('biometric_lock') ?? false;
+
+      if (biometricEnabled) {
+        // show biometric lock
+        try {
+          final authenticated = await LocalAuthentication().authenticate(
+            localizedReason: 'Authenticate to access BFinance',
+          );
+          if (!mounted) return;
+          if (authenticated) {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          } else {
+            // user cancelled - show login
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        } on PlatformException {
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+      } else {
+        // go straight to app
+
+        print("Navigating to dashboard");
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
     } else {
       if (!mounted) return;
       print("No token found, navigating to login");
@@ -38,16 +66,24 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<bool> autologin() async {
     // Implement auto-login logic here
     try {
-      final token = await api.ApiService().getAccessToken();
-      print("Response tokenduring login: $token");
+      //check if we cached profile(offline access)
+      final prefs = await SharedPreferences.getInstance();
+      final cachedProfile = prefs.getString('cached_profile');
+      if (cachedProfile != null) {
+        debugPrint("Cached profile found: $cachedProfile");
 
-      if (token == null) {
-        // Navigate to login
-        return false;
-      } else {
-        // Navigate to dashboard
+        // Load the cached profile data if needed for offline access or display
         return true;
       }
+      // If no cached profile, check for a valid token(online access)
+      final token = await api.ApiService().getAccessToken();
+      debugPrint("Response tokenduring login: $token");
+
+      if (token != null) {
+        // Navigate to login
+        return true;
+      }
+      return false;
     } catch (e) {
       _showError(e.toString());
       return false;

@@ -304,7 +304,13 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 categories: categoryProvider.categories,
                 selectedCategoryId: categoryProvider.selectedCategoryId,
                 onCategorySelected: (id) {
+                  print("📍 onCategorySelected received ID: $id");
+
                   categoryProvider.setSelectedCategoryId(id);
+                  print(
+                    "✅ setSelectedCategoryId called, new ID: ${categoryProvider.selectedCategoryId}",
+                  );
+
                   setState(() {
                     _categoryError = null; // Clear error on selection
                   });

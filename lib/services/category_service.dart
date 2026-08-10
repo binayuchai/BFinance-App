@@ -18,14 +18,12 @@ class CategoryService {
   Future<List<Category>> getCategories() async {
     // Implementation for fetching categories from API
     try {
-      print("Fetching categories from API...");
-      final headers = await api.authHeaders();
+      print("🔍 CategoryService.getCategories() called");
       final url = Uri.parse(apiUrl);
-      print("GET $url with headers: $headers");
       print("Initiating category fetch request...");
-      print("URL: $url");
-      final response = await http
-          .get(url, headers: headers)
+      print("🌐 Making request to: $url");
+      final response = await api
+          .authorizedRequest((headers) => http.get(url, headers: headers))
           .timeout(
             const Duration(seconds: 10),
             onTimeout: () {
@@ -39,6 +37,9 @@ class CategoryService {
       print(decoded);
 
       print("Category fetch response status: ${response.statusCode}");
+      print("📊 Response status: ${response.statusCode}");
+      print("📝 Response body: ${response.body}");
+      print("📏 Response body length: ${response.body.length}");
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         print("Fetched categories: $data");
@@ -62,11 +63,12 @@ class CategoryService {
   // POST Category to API
   Future<bool> addCategory(Category category) async {
     try {
-      final headers = await api.authHeaders();
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: jsonEncode(category.categoryToJson()),
+      final response = await api.authorizedRequest(
+        (headers) => http.post(
+          Uri.parse(apiUrl),
+          headers: headers,
+          body: jsonEncode(category.categoryToJson()),
+        ),
       );
       print("Add category response status: ${response.statusCode}");
       print("Add category response body: ${response.body}");
@@ -101,11 +103,12 @@ class CategoryService {
 
   Future<Category?> updateCategory(Category category) async {
     try {
-      final headers = await api.authHeaders();
-      final response = await http.put(
-        Uri.parse('$apiUrl${category.id}/'),
-        headers: headers,
-        body: jsonEncode(category.categoryToJson()),
+      final response = await api.authorizedRequest(
+        (headers) => http.put(
+          Uri.parse('$apiUrl${category.id}/'),
+          headers: headers,
+          body: jsonEncode(category.categoryToJson()),
+        ),
       );
       print("Update category response status: ${response.statusCode}");
       print("Update category response body: ${response.body}");
@@ -125,10 +128,9 @@ class CategoryService {
 
   Future<bool> deleteCategory(int categoryId) async {
     try {
-      final headers = await api.authHeaders();
-      final response = await http.delete(
-        Uri.parse('$apiUrl$categoryId/'),
-        headers: headers,
+      final response = await api.authorizedRequest(
+        (headers) =>
+            http.delete(Uri.parse('$apiUrl$categoryId/'), headers: headers),
       );
       print("Delete category response status: ${response.statusCode}");
       print("Delete category response body: ${response.body}");

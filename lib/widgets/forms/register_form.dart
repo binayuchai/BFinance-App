@@ -1,3 +1,4 @@
+import 'package:bfinance/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +51,9 @@ class _RegisterFormState extends State<RegisterForm> {
           await context
               .read<CategoryProvider>()
               .fetchCategories(); // Fetch categories after registration to populate the dashboard
+          await context
+              .read<AuthProvider>()
+              .loadProfile(); // Load user profile after registration
           Navigator.pushReplacementNamed(context, '/dashboard');
         } else {
           // Show error message from backend

@@ -39,17 +39,24 @@ class Transaction {
 
     return Transaction(
       id: json['id'],
-      title: json['title'],
-      amount: double.parse(json['amount']),
+      title: json['title'] ?? 'No Title', // Default to 'No Title' if missing
+      amount: json['amount'] is String
+          ? double.parse(json['amount']) // From API
+          : (json['amount'] as num).toDouble(), // From cache (already double)
       currencyCode:
           json['currency_code'] ?? 'USD', // Default to USD if not provided
-      note: json['description'] ?? '',
-      categoryId: json['category'], // Store category ID for API interactions
+      note:
+          json['description'] ??
+          json['note'] ??
+          '', // Handle both 'description' and 'note'
+      categoryId:
+          json['category'] ??
+          json['category_id'], // Store category ID for API interactions
       category: Category.fromJson(
         json['category_detail'],
       ), // Parse the category object
 
-      date: (json['created_at']),
+      date: (json['created_at']) ?? json['date'] ?? '',
       time: json['time'] ?? '',
     );
   }
@@ -64,6 +71,11 @@ class Transaction {
       'description': note ?? '',
       'category': categoryId,
       'transaction_type': isIncome ? 'credit' : 'debit',
+      'category_detail': category
+          .categoryToJson(), // Include category details for caching
+      'created_at': date,
+      'time': time,
+      'date': date,
     };
   }
 }

@@ -8,35 +8,36 @@ class CurrencyProvider extends ChangeNotifier {
   String _currencyCode = 'USD'; // Default currency
   final CurrencyService _currencyService = CurrencyService();
   final ApiService _apiService = ApiService();
-  final ExchangeRateService _exchangeRateService =
-      ExchangeRateService(); // ← add this
+  final ExchangeRateService _exchangeRateService = ExchangeRateService();
+  bool _isLoading = false;
+  String? _error;
+  bool get lastConversionUsedStaleRate => _exchangeRateService.usedStaleRate;
 
   // If the currency is saved in local storage or backend, load it on app startup
   String get currencyCode =>
       _currencyCode; // Getter for the current currency code
   Future<void> initialize() async {
     //declaring the flag to prevent multiple initializations due to not reactive nature of fetched cachedCurreny
-    bool resolvedCurrency = false;
     //load from cache immediately to avoid delay(fast,offline access)
     final cachedCurrency = await _currencyService.getSavedCurrency();
     if (cachedCurrency != null) {
       _currencyCode = cachedCurrency;
       notifyListeners();
     }
-    //Try to sync from backend if user is logged in and has a saved preference
-    try {
-      final profile = await _apiService.getProfile();
-      if (profile != null && profile.containsKey('default_currency')) {
-        _currencyCode = profile['default_currency'];
-        await _currencyService.saveCurrency(_currencyCode);
-        resolvedCurrency = true; // Set flag to true
-        notifyListeners();
-      }
-    } catch (e) {
-      print("Error fetching currency from backend: $e");
-    }
+    // //Try to sync from backend if user is logged in and has a saved preference
+    // try {
+    //   final profile = await _apiService.getProfile();
+    //   if (profile != null && profile.containsKey('default_currency')) {
+    //     _currencyCode = profile['default_currency'];
+    //     await _currencyService.saveCurrency(_currencyCode);
+    //     resolvedCurrency = true; // Set flag to true
+    //     notifyListeners();
+    //   }
+    // } catch (e) {
+    //   print("Error fetching currency from backend: $e");
+    // }
     // If no saved currency on cache and backend, detect based on location/device settings
-    if (cachedCurrency == null && !resolvedCurrency) {
+    else {
       _currencyCode = await _currencyService.detectCurrency();
       await _currencyService.saveCurrency(_currencyCode);
       notifyListeners();
@@ -47,6 +48,27 @@ class CurrencyProvider extends ChangeNotifier {
     //   _currencyCode = cachedCurrency;
     //   notifyListeners();
     // }
+  }
+
+  // Sync the currency with the backend
+  Future<void> syncCurrencyWithBackend() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final result = await _apiService.getProfile();
+      if (result.data != null && result.data!.containsKey('default_currency')) {
+        _currencyCode = result.data!['default_currency'];
+        await _currencyService.saveCurrency(_currencyCode);
+        notifyListeners();
+      } else {
+        _error = result.errorMessage ?? "Failed to fetch currency from backend";
+      }
+    } catch (e) {
+      debugPrint("Error syncing currency: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   //Convert amount

@@ -33,6 +33,15 @@ class CategoryGrid extends StatelessWidget {
       return cat.type == typeFilter || cat.type == CategoryType.both;
     }).toList();
 
+    print("🔍 CategoryGrid Debug:");
+    print("   Total categories: ${categories.length}");
+    print("   isIncome: $isIncome, typeFilter: $typeFilter");
+    print("   Filtered categories: ${filteredCategories.length}");
+    print(
+      "   Categories: ${categories.map((c) => '${c.name}(${c.type})').toList()}",
+    );
+    print("   selectedCategoryId: $selectedCategoryId");
+
     return GridView.builder(
       // Build a grid view to display categories
       shrinkWrap: true, // Let the grid take only the necessary space
@@ -87,12 +96,14 @@ class CategoryGrid extends StatelessWidget {
             decoration: BoxDecoration(
               color: isSelected
                   ? colorScheme.primary.withValues(alpha: .1)
-                  : colorScheme.onSurfaceVariant,
+                  : Colors.transparent, // Highlight selected category
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isSelected
                     ? colorScheme.primary
-                    : const Color.fromARGB(95, 224, 224, 224),
+                    : colorScheme.outline.withOpacity(
+                        0.3,
+                      ), // Highlight selected category
                 width: 1.5,
               ),
             ),

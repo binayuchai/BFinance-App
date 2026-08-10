@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:bfinance/features/settings/account/data/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _api = ApiService();
@@ -18,12 +21,19 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final data = await _api.getProfile();
-      if (data != null) {
-        _user = UserModel.fromJson(data);
+      final result = await _api.getProfile();
+      if (result.data != null) {
+        _user = UserModel.fromJson(result.data!);
+
+        //cache the profile data locally
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('cached_profile', jsonEncode(result.data));
+        debugPrint("Cached profile data: ${user?.name}");
+      } else {
+        _error = result.errorMessage ?? "Failed to load profile";
       }
     } catch (e) {
-      _error = e.toString();
+      _error = "An unexpected error occurred";
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -56,6 +66,22 @@ class AuthProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  //load cached profile from local storage
+  Future<void> loadProfileFromCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedData = prefs.getString('cached_profile');
+    if (cachedData != null) {
+      try {
+        final data = jsonDecode(cachedData);
+        _user = UserModel.fromJson(data);
+        debugPrint("Loaded cached profile: ${_user!.name}, ${_user!.email}");
+        notifyListeners();
+      } catch (e) {
+        debugPrint("Error decoding cached profile: $e");
+      }
     }
   }
 

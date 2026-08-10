@@ -2,6 +2,7 @@ import 'package:bfinance/features/app_shell/app_shell.dart';
 import 'package:bfinance/features/auth/view/login.dart';
 import 'package:bfinance/features/auth/view/register.dart';
 import 'package:bfinance/features/settings/account/account_screen.dart';
+import 'package:bfinance/features/settings/notifications/notifications_screen.dart';
 import 'package:bfinance/features/settings/privacy/privacy_screen.dart';
 import 'package:bfinance/features/splash/splash_screen.dart';
 import 'package:bfinance/navigation/bottom_nav.dart';
@@ -17,6 +18,7 @@ class AppRoutes {
   static const String account = "/account";
   static const String appearance = "/appearance";
   static const String privacy = "/privacy";
+  static const String notification = "/notification";
 
   static Map<String, WidgetBuilder> routes = {
     home: (context) => const SplashScreen(),
@@ -27,5 +29,6 @@ class AppRoutes {
     account: (context) => const AccountScreen(),
     appearance: (context) => const AppearanceScreen(),
     privacy: (context) => const PrivacyScreen(),
+    notification: (context) => const NotificationsScreen(),
   };
 }

@@ -1,6 +1,7 @@
 import 'package:bfinance/providers/auth_provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/routes/app_routes.dart';
+import 'package:bfinance/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/navigation/core_navigation.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,15 @@ import 'package:bfinance/providers/category_provider.dart';
 import 'package:bfinance/providers/currency_provider.dart';
 import 'package:bfinance/providers/theme_provider.dart';
 
-void main() {
+void main() async {
+  /// Initialize Flutter bindings before async operations
+  /// Required when using await before runApp()
+  WidgetsFlutterBinding.ensureInitialized();
+
+  /// Initialize notification service with timezone, permissions, etc.
+
+  await NotificationService().initialize();
+
   runApp(const MyApp());
 }
 
@@ -29,15 +38,17 @@ class MyApp extends StatelessWidget {
         //   create: (_) => ThemeProvider()..initialize(),
         // )
         ChangeNotifierProvider(
-          create: (_) => CategoryProvider(),
+          create: (_) => CategoryProvider()..initialize(),
         ), //  Holds & exposes category state; rebuilds UI on changes
         ChangeNotifierProvider(
-          create: (_) => TransactionProvider(),
+          create: (_) => TransactionProvider()..loadCachedTransactions(),
         ), //  Holds & exposes transaction state; rebuilds UI on changes
         ChangeNotifierProvider(
           create: (_) => CurrencyProvider()..initialize(),
         ), //  Holds & exposes currency state; initializes on app start
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider()..loadProfileFromCache(),
+        ),
         ChangeNotifierProvider(
           create: (_) => ThemeProvider()..initialize(),
         ), //  Holds & exposes theme state; initializes on app start

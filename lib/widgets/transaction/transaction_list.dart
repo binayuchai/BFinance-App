@@ -14,17 +14,19 @@ class TransactionList extends StatefulWidget {
 }
 
 class _TransactionListState extends State<TransactionList> {
-  @override
-  void initState() {
-    super.initState();
-    // Load transactions or perform any initialization here
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currencyProvider = context.read<CurrencyProvider>();
-      context.read<TransactionProvider>().fetchTransactions(
-        currencyProvider: currencyProvider,
-      );
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // Load transactions or perform any initialization here
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     //load from cache if available, otherwise fetch from API
+  //     final transactionProvider = context.read<TransactionProvider>();
+
+  //     // Fetch transactions only if they haven't been loaded yet from cache
+  //     final currencyProvider = context.read<CurrencyProvider>();
+  //     transactionProvider.ensureLoaded(currencyProvider: currencyProvider);
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -38,69 +40,87 @@ class _TransactionListState extends State<TransactionList> {
     if (transactions.isEmpty) {
       return Center(child: Text("No transactions found."));
     }
-    return ListView.builder(
-      itemCount: transactions.length,
-      itemBuilder: (context, index) {
-        final tx = transactions[index];
-
-        return Dismissible(
-          key: Key(tx.id.toString()),
-          direction: DismissDirection.endToStart, // Swipe left to delete
-          background: Container(
-            color: Colors.red,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 16.0),
-            child: const Icon(Icons.delete, color: Colors.white),
+    return Column(
+      children: [
+        if (transactionProvider.ratesAreStale)
+          Container(
+            width: double.infinity,
+            color: Colors.orange.shade100,
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+            child: const Text(
+              "Exchange rates may be outdated (offline)",
+              style: TextStyle(fontSize: 12, color: Colors.orange),
+            ),
           ),
-          onDismissed: (direction) async {
-            final success = await context
-                .read<TransactionProvider>()
-                .deleteTransactionProvider(tx.id!);
-            if (!context.mounted) return;
-            if (!success) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    "Failed to delete the transaction. Please try again.",
+        Expanded(
+          child: ListView.builder(
+            itemCount: transactions.length,
+            itemBuilder: (context, index) {
+              final tx = transactions[index];
+
+              return Dismissible(
+                key: Key(tx.id.toString()),
+                direction: DismissDirection.endToStart, // Swipe left to delete
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                onDismissed: (direction) async {
+                  final success = await context
+                      .read<TransactionProvider>()
+                      .deleteTransactionProvider(tx.id!);
+                  if (!context.mounted) return;
+                  if (!success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Failed to delete the transaction. Please try again.",
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: ListTile(
+                  onTap: () async {
+                    // Navigate to details or edit screen
+                    final result = await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) {
+                        return EditTransactionForm(transactions: tx);
+                      },
+                    );
+                  },
+                  leading: tx.icon,
+                  title: Text(
+                    tx.title,
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text(
+                    AmountFormatter.formatAmountSync(
+                      transactionProvider.getConvertedAmount(tx.id!),
+                      currencyProvider.currencyCode,
+                    ),
+                    style: TextStyle(
+                      color: tx.isIncome ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(DateTimeFormatter.formatDate(tx.date)),
+                      Text(DateTimeFormatter.formatTime(tx.time)),
+                    ],
                   ),
                 ),
               );
-            }
-          },
-          child: ListTile(
-            onTap: () async {
-              // Navigate to details or edit screen
-              final result = await showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) {
-                  return EditTransactionForm(transactions: tx);
-                },
-              );
             },
-            leading: tx.icon,
-            title: Text(
-              tx.title,
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-            subtitle: Text(
-              AmountFormatter.formatAmountSync(
-                transactionProvider.getConvertedAmount(tx.id!),
-                currencyProvider.currencyCode,
-              ),
-              style: TextStyle(color: tx.isIncome ? Colors.green : Colors.red),
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(DateTimeFormatter.formatDate(tx.date)),
-                Text(DateTimeFormatter.formatTime(tx.time)),
-              ],
-            ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

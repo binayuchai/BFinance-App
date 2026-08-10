@@ -57,7 +57,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         child: Text(
                           user?.name.isNotEmpty == true
                               ? user!.name[0].toUpperCase()
-                              : '?',
+                              : 'Guest',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w600,

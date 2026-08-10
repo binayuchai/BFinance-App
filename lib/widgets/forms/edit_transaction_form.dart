@@ -141,17 +141,26 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
             updatedTransaction,
             currencyProvider: currencyProvider,
           );
+
       if (!mounted) return;
       setState(() {
         isLoading = false;
       });
       if (success) {
+        ScaffoldMessenger.of(
+          context,
+        ).clearSnackBars(); // clear "Updating..." first
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Transaction updated successfully")),
         );
         if (!mounted) return;
         Navigator.pop(context, true); // Return true to indicate success
       } else {
+        ScaffoldMessenger.of(
+          context,
+        ).clearSnackBars(); // clear "Updating..." first
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Failed to update transaction. Please try again."),
@@ -162,6 +171,11 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
       setState(() {
         isLoading = false;
       });
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).clearSnackBars(); // clear "Updating..." first
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
@@ -235,7 +249,9 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
                 controller: _amountController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d{0,10}\.?\d{0,2}'),
+                  ),
                 ],
                 decoration: InputDecoration(
                   labelText: "Amount",

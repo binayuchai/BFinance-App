@@ -14,8 +14,9 @@ class TransactionService {
   //GET Transactions from API
   Future<List<Transaction>> getTransactions() async {
     try {
-      final headers = await api.authHeaders();
-      final response = await http.get(Uri.parse(apiUrl), headers: headers);
+      final response = await api.authorizedRequest(
+        (headers) => http.get(Uri.parse(apiUrl), headers: headers),
+      );
       print("Status: ${response.statusCode}");
       print("Response body: ${response.body}");
       if (response.statusCode == 200) {
@@ -36,11 +37,12 @@ class TransactionService {
   //POST Transaction to API
   Future<Transaction?> addTransaction(Transaction transaction) async {
     try {
-      final headers = await api.authHeaders();
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: jsonEncode(transaction.toJson()),
+      final response = await api.authorizedRequest(
+        (headers) => http.post(
+          Uri.parse(apiUrl),
+          headers: headers,
+          body: jsonEncode(transaction.toJson()),
+        ),
       );
 
       print("Status: ${response.statusCode}");
@@ -61,18 +63,19 @@ class TransactionService {
   //PUT Transaction to API
   Future<Transaction?> updateTransaction(Transaction transaction) async {
     try {
-      final headers = await api.authHeaders();
-      final response = await http.put(
-        Uri.parse('$apiUrl${transaction.id}/'),
-        headers: headers,
-        body: jsonEncode(transaction.toJson()),
+      final response = await api.authorizedRequest(
+        (headers) => http.put(
+          Uri.parse('$apiUrl${transaction.id}/'),
+          headers: headers,
+          body: jsonEncode(transaction.toJson()),
+        ),
       );
       if (response.statusCode == 200) {
         print("Transaction updated successfully.");
         return Transaction.fromJson(jsonDecode(response.body));
       } else {
         print(
-          "Failed to update transaction. Status code: ${response.statusCode}",
+          "Failed to update transaction. Status code: ${response.statusCode}  ${response.body}",
         );
         return null;
       }
@@ -85,10 +88,8 @@ class TransactionService {
   //DELETE Transaction from API
   Future<bool> deleteTransaction(int id) async {
     try {
-      final headers = await api.authHeaders();
-      final response = await http.delete(
-        Uri.parse('$apiUrl$id/'),
-        headers: headers,
+      final response = await api.authorizedRequest(
+        (headers) => http.delete(Uri.parse('$apiUrl$id/'), headers: headers),
       );
       if (response.statusCode == 204) {
         print("Transaction deleted successfully.");

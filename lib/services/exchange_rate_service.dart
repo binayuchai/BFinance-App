@@ -7,12 +7,17 @@ class ExchangeRateService {
   static const String _cachePrefix = "exchange_rate_";
   static const int _cacheHours = 24; // rates valid for 24 hours
 
+  // Set to true whenever the most recent convert() call had to fall back
+  // to an expired/stale cached rate because no fresh rate was available.
+  bool usedStaleRate = false;
+
   //Main converson method
   Future<double> convert(
     double amount, {
     required String from,
     required String to,
   }) async {
+    usedStaleRate = false; // Reset flag for this conversion
     //If same currency, no conversion needed
     if (from == to) return amount;
     final rate = await _getRate(from: from, to: to);
@@ -47,7 +52,8 @@ class ExchangeRateService {
         print("💱 Rates available: ${data['rates']}");
         if (data['rates'][to] == null) {
           print("⚠️ Target currency $to not found in response");
-          return 1.0; // Fallback if target currency not found
+          //return 1.0; // Fallback if target currency not found
+          throw Exception("Invalid API response.");
         }
 
         final rates = data['rates'] as Map<String, dynamic>;
@@ -60,15 +66,27 @@ class ExchangeRateService {
         print("✅ Rate found: $rate");
 
         return rate;
+      } else {
+        throw Exception("Exchange rate API returned ${response.statusCode}");
       }
     } catch (e) {
       print("💥 Error: $e");
+      // No internet / API failure — fall back to an expired cached rate if one exists,
+      // rather than failing completely.
+      final staleRate = await _getStaleCachedRate(from, to);
+      if (staleRate != null) {
+        usedStaleRate = true;
+        print("⚠️ Using stale cached rate: $staleRate");
+        return staleRate;
+      }
 
       // throw Exception("ExchangeRateService error: $e");
+      rethrow;
     }
-    print("⚠️ Falling back to 1.0");
+    // print("⚠️ Falling back to 1.0");
 
-    return 1.0; // Fallback to 1.0 if something goes wrong
+    //return 1.0; // Fallback to 1.0 if something goes wrong
+    // throw Exception('Unable to fetch exchange rate');
   }
 
   // Cache rate to SharedPreferences
@@ -93,10 +111,17 @@ class ExchangeRateService {
         DateTime.now().difference(cachedTime).inHours >= _cacheHours;
     if (isExpired) {
       //clear expired cache
-      await prefs.remove("${key}_rate");
-      await prefs.remove("${key}_time");
+      // await prefs.remove("${key}_rate");
+      // await prefs.remove("${key}_time");
       return null;
     }
+    return rate;
+  }
+
+  Future<double?> _getStaleCachedRate(String from, String to) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = "$_cachePrefix${from}_$to";
+    final rate = prefs.getDouble("${key}_rate");
     return rate;
   }
 }

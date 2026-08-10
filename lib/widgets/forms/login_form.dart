@@ -1,3 +1,5 @@
+import 'package:bfinance/providers/auth_provider.dart';
+import 'package:bfinance/providers/currency_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/services/api_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -35,8 +37,10 @@ class _LoginFormState extends State<LoginForm> {
           print("Login successful");
           final token = await api.getAccessToken();
           print("Login dashboard token : $token");
-          context.read<CategoryProvider>().resetCategories(); // 👈
+          context.read<CategoryProvider>().resetCategories();
           await context.read<CategoryProvider>().fetchCategories();
+          await context.read<AuthProvider>().loadProfile();
+          await context.read<CurrencyProvider>().syncCurrencyWithBackend();
           Navigator.pushReplacementNamed(context, '/dashboard');
         } else {
           // Show error message from backend
