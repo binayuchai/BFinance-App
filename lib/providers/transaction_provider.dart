@@ -31,6 +31,16 @@ class TransactionProvider extends ChangeNotifier {
   TransactionSummary get summary =>
       TransactionSummary.fromTransactions(transactions, _convertedAmounts);
 
+  void clear() {
+    transactions.clear();
+    _convertedAmounts.clear();
+    _isLoaded = false;
+    _isLoading = false;
+    _error = null;
+    _ratesAreStale = false;
+    notifyListeners();
+  }
+
   Future<void> fetchTransactions({
     required CurrencyProvider currencyProvider,
   }) async {
@@ -218,13 +228,17 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> convertAllAmount(CurrencyProvider currencyProvider) async {
     bool anyState = false;
     for (final t in transactions) {
-      final converted = await currencyProvider.convertAmount(
-        t.amount,
-        t.currencyCode,
-      );
-      _convertedAmounts[t.id!] = converted;
-      if (currencyProvider.lastConversionUsedStaleRate) {
-        anyState = true; // If any conversion used stale rates, set the flag
+      try {
+        final converted = await currencyProvider.convertAmount(
+          t.amount,
+          t.currencyCode,
+        );
+        _convertedAmounts[t.id!] = converted;
+        if (currencyProvider.lastConversionUsedStaleRate) {
+          anyState = true; // If any conversion used stale rates, set the flag
+        }
+      } catch (e) {
+        print("Error converting amount for transaction ${t.id}: $e");
       }
     }
     _ratesAreStale = anyState; // Update the stale rates flag

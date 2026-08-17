@@ -35,6 +35,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   String? _categoryError;
 
+  String? _statusError; // inline error  for network errors or other issues
+
   //Push to create category screen
 
   Future<void> _openCreateCategoryScreen() async {
@@ -60,6 +62,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   Future<String?> _addTransaction() async {
     setState(() {
       _amountError = null;
+      _statusError = null;
       _isLoadingTransaction = true;
     });
 
@@ -124,12 +127,12 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     //   "source": _isIncome ? _sourceController.text : "",
     // };
     //  show SnackBar only after validation passes
-    if (mounted) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Saving transaction...")));
-    }
+    // if (mounted) {
+    //   ScaffoldMessenger.of(context).clearSnackBars();
+    //   ScaffoldMessenger.of(
+    //     context,
+    //   ).showSnackBar(const SnackBar(content: Text("Saving transaction...")));
+    // }
 
     try {
       final response = await context
@@ -168,7 +171,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       //   context,
       // ).showSnackBar(SnackBar(content: Text("Error: $e")));
       // return "An error occurred while adding the transaction. Please try again.";
-      return "Network error: $e";
+      return "Network error: ${api.getFriendlyErrorMessage(e)}";
       // Navigator.pop(context, false);
     }
   }
@@ -362,6 +365,16 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               ),
 
               const SizedBox(height: 16.0),
+
+              //Inline error banner for network errors or other issues
+              if (_statusError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Text(
+                    _statusError!,
+                    style: const TextStyle(color: Colors.red, fontSize: 14),
+                  ),
+                ),
               //Save Button
               SizedBox(
                 width: double.infinity,
@@ -376,12 +389,39 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
                             final result = await _addTransaction();
                             if (!mounted) return;
-                            if (result == "") return;
-
-                            Navigator.pop(context, result ?? "success");
+                            if (result == null) {
+                              Navigator.pop(context, 'success');
+                              return;
+                            }
+                            if (result == '') return;
+                            //
+                            // ScaffoldMessenger.of(context).clearSnackBars();
+                            // ScaffoldMessenger.of(context).showSnackBar(
+                            //   SnackBar(
+                            //     content: Text(
+                            //       result ?? 'Something went wrongs',
+                            //     ),
+                            //   ),
+                            // );
+                            //real error - show inline banner
+                            setState(() {
+                              _statusError = result;
+                            });
+                            // Navigator.pop(context, result ?? 'success');
                           }
                         },
-                  child: const Text("Save Transaction"),
+                  child: _isLoadingTransaction
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text("Save Transaction"),
                 ),
               ),
             ],

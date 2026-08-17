@@ -8,6 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:bfinance/navigation/core_navigation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+enum TokenRefreshStatus { success, invalidToken, networkError, unknownError }
 
 class ApiResult {
   final bool success;
@@ -28,6 +31,7 @@ class ApiService {
   // final String baseUrl = 'http://192.168.3.174:8000/user/api';
   final String baseUrl = 'https://footpad-oasis-tipped.ngrok-free.dev/user/api';
   final storage = FlutterSecureStorage();
+  static const _defaultTimeout = Duration(seconds: 10);
 
   String getFriendlyErrorMessage(Object error) {
     if (error is HandshakeException) {
@@ -64,18 +68,37 @@ class ApiService {
       if (JwtDecoder.isExpired(getToken)) {
         print("Token expired → refreshing");
 
-        final refreshed = await refreshToken();
+        final result = await refreshToken();
 
-        if (refreshed) {
+        // if (refreshed) {
+        //   final newToken = await storage.read(key: 'access_token');
+        //   print("New Access token after refresh: $newToken");
+        //   return newToken;
+        // }
+        if (result == TokenRefreshStatus.success) {
           final newToken = await storage.read(key: 'access_token');
           print("New Access token after refresh: $newToken");
           return newToken;
         }
+        if (result == TokenRefreshStatus.networkError) {
+          // Offline / server unreachable — token might still be valid,
+          // we just can't confirm it right now. Don't force logout.
+
+          throw const SocketException(
+            'No internet connection during token refresh',
+          );
+        }
+
+        // If refresh failed due to invalid token or unknown error, force logout
 
         return null;
       }
 
       return getToken;
+    } on SocketException {
+      // An expired access token cannot be refreshed without a connection, but
+      // the saved session and cached data must remain available offline.
+      rethrow;
     } catch (e) {
       // THIS handles FormatException
       print("JWT decode error: $e");
@@ -89,23 +112,31 @@ class ApiService {
   }
 
   Future<Map<String, String>> authHeaders() async {
-    final token = await getAccessToken();
-    if (token == null) {
-      await logout(sessionExpired: true);
-      throw Exception('No valid access token found');
+    try {
+      final token = await getAccessToken();
+      if (token == null) {
+        await logout(sessionExpired: true);
+        throw Exception('No valid access token found');
+      }
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+    } on SocketException {
+      //Offline - don't logout ,surface a network error to the user instead
+      throw const SocketException(
+        'No internet connection. Please check your network and try again.',
+      );
     }
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
   }
 
   //Authorize Requests to API
   Future<http.Response> authorizedRequest(
-    Future<http.Response> Function(Map<String, String>) request,
-  ) async {
+    Future<http.Response> Function(Map<String, String>) request, {
+    Duration timeoutDuration = _defaultTimeout,
+  }) async {
     final headers = await authHeaders();
-    final response = await request(headers);
+    final response = await request(headers).timeout(timeoutDuration);
     if (response.statusCode == 401) {
       // Unauthorized - token might be invalid or expired
 
@@ -149,16 +180,18 @@ class ApiService {
     String confirmPassword,
   ) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/register/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': username,
-          'email': email,
-          'password': password,
-          'password2': confirmPassword,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/register/'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'name': username,
+              'email': email,
+              'password': password,
+              'password2': confirmPassword,
+            }),
+          )
+          .timeout(_defaultTimeout);
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         await storage.write(
@@ -189,11 +222,13 @@ class ApiService {
 
   Future<ApiResult> loginUser(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/login/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/login/'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email, 'password': password}),
+          )
+          .timeout(_defaultTimeout);
       print("Response during login: $response");
 
       if (response.statusCode == 200) {
@@ -398,18 +433,20 @@ class ApiService {
   }
   //Refresh Token
 
-  Future<bool> refreshToken() async {
+  Future<TokenRefreshStatus> refreshToken() async {
     final refresh = await storage.read(key: 'refresh_token');
-    if (refresh == null) return false;
+    if (refresh == null) return TokenRefreshStatus.invalidToken;
     print("Refreshing token with refresh token: $refresh");
 
     try {
       // if token is expired, get a new one
-      final response = await http.post(
-        Uri.parse('$baseUrl/token/refresh/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'refresh': refresh}),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/token/refresh/'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'refresh': refresh}),
+          )
+          .timeout(_defaultTimeout);
       print("Refresh token entered: $response");
 
       if (response.statusCode == 200) {
@@ -417,19 +454,25 @@ class ApiService {
         print("New access token: $data");
         await storage.write(key: 'access_token', value: data['access']);
         print("Token refreshed successfully.");
-        return true;
+        return TokenRefreshStatus.success;
       }
       if (response.statusCode == 401 || response.statusCode == 400) {
         // Refresh token is invalid or expired
         await storage.delete(key: 'access_token');
         await storage.delete(key: 'refresh_token');
-        return false;
+        return TokenRefreshStatus.invalidToken;
       }
+      return TokenRefreshStatus.networkError; // unexpected status
+    } on SocketException {
+      print("Network error during token refresh.");
+      return TokenRefreshStatus.networkError;
+    } on TimeoutException {
+      print("Timeout during token refresh.");
+      return TokenRefreshStatus.networkError;
     } catch (e) {
-      print('Error refreshing token: $e');
-      return false;
+      print("Unknown error during token refresh: $e");
+      return TokenRefreshStatus.unknownError;
     }
-    return false;
   }
 
   Future<void> logout({bool sessionExpired = false}) async {
@@ -438,11 +481,13 @@ class ApiService {
       final refresh = await storage.read(key: 'refresh_token');
       if (refresh != null && refresh.isNotEmpty) {
         final headers = await authHeaders();
-        await http.post(
-          Uri.parse('$baseUrl/logout/'),
-          headers: headers,
-          body: jsonEncode({'refresh': refresh}),
-        );
+        await http
+            .post(
+              Uri.parse('$baseUrl/logout/'),
+              headers: headers,
+              body: jsonEncode({'refresh': refresh}),
+            )
+            .timeout(_defaultTimeout);
       }
     } catch (_) {
       // blacklist failed (no internet / server down / token already expired)
@@ -456,6 +501,12 @@ class ApiService {
     await storage.delete(key: 'access_token');
     await storage.delete(key: 'refresh_token');
 
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('cached_profile');
+    await prefs.remove('cached_categories');
+    await prefs.remove('cached_transactions');
+    await prefs.remove('cached_currency');
+
     navigatorKey.currentState!.pushNamedAndRemoveUntil(
       '/login',
       (route) => false,
@@ -466,10 +517,8 @@ class ApiService {
   //Get user profile
   Future<ApiResult> getProfile() async {
     try {
-      final headers = await authHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/profile/'),
-        headers: headers,
+      final response = await authorizedRequest(
+        (headers) => http.get(Uri.parse('$baseUrl/profile/'), headers: headers),
       );
       if (response.statusCode == 200) {
         return ApiResult(success: true, data: jsonDecode(response.body));
@@ -501,11 +550,12 @@ class ApiService {
   //Update user profile
   Future<ApiResult> updateProfile(Map<String, dynamic> updatedData) async {
     try {
-      final headers = await authHeaders();
-      final response = await http.patch(
-        Uri.parse('$baseUrl/profile/'),
-        headers: headers,
-        body: jsonEncode(updatedData),
+      final response = await authorizedRequest(
+        (headers) => http.patch(
+          Uri.parse('$baseUrl/profile/'),
+          headers: headers,
+          body: jsonEncode(updatedData),
+        ),
       );
       if (response.statusCode == 200) {
         return ApiResult(
@@ -513,23 +563,25 @@ class ApiService {
           successMessage: 'Profile updated successfully.',
           data: jsonDecode(response.body),
         );
-      } else if (response.statusCode == 401) {
-        // Unauthorized - token might be invalid or expired
-        await logout(sessionExpired: true);
-        return ApiResult(
-          success: false,
-          errorMessage: "Session expired. Please login again.",
-        );
-      } else {
-        print(
-          "Failed to update profile. Status code: ${response.statusCode}, Body: ${response.body}",
-        );
-        final errorMessage = _parseErrorMessage(
-          response.body,
-          // context: "Profile Update",
-        );
-        return ApiResult(success: false, errorMessage: errorMessage);
       }
+      // } else if (response.statusCode == 401) {
+      //   // Unauthorized - token might be invalid or expired
+      //   await logout(sessionExpired: true);
+      //   return ApiResult(
+      //     success: false,
+      //     errorMessage: "Session expired. Please login again.",
+      //   );
+
+      //}
+      // else {
+      //   print(
+      //     "Failed to update profile. Status code: ${response.statusCode}, Body: ${response.body}",
+      //   );
+      final errorMessage = _parseErrorMessage(
+        response.body,
+        // context: "Profile Update",
+      );
+      return ApiResult(success: false, errorMessage: errorMessage);
     } catch (e) {
       return ApiResult(
         success: false,
@@ -545,15 +597,16 @@ class ApiService {
     required String password2,
   }) async {
     try {
-      final headers = await authHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/change-password/'),
-        headers: headers,
-        body: jsonEncode({
-          'old_password': oldPassword,
-          'password': password,
-          'password2': password2,
-        }),
+      final response = await authorizedRequest(
+        (headers) => http.post(
+          Uri.parse('$baseUrl/change-password/'),
+          headers: headers,
+          body: jsonEncode({
+            'old_password': oldPassword,
+            'password': password,
+            'password2': password2,
+          }),
+        ),
       );
       if (response.statusCode == 200) {
         return ApiResult(

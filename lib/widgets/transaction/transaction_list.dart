@@ -14,19 +14,23 @@ class TransactionList extends StatefulWidget {
 }
 
 class _TransactionListState extends State<TransactionList> {
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   // Load transactions or perform any initialization here
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     //load from cache if available, otherwise fetch from API
-  //     final transactionProvider = context.read<TransactionProvider>();
+  @override
+  void initState() {
+    super.initState();
+    // Load transactions or perform any initialization here
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      //load from cache if available, otherwise fetch from API
+      final transactionProvider = context.read<TransactionProvider>();
+      if (transactionProvider.transactions.isEmpty) {
+        final currencyProvider = context.read<CurrencyProvider>();
+        transactionProvider.ensureLoaded(currencyProvider: currencyProvider);
+      }
 
-  //     // Fetch transactions only if they haven't been loaded yet from cache
-  //     final currencyProvider = context.read<CurrencyProvider>();
-  //     transactionProvider.ensureLoaded(currencyProvider: currencyProvider);
-  //   });
-  // }
+      // // Fetch transactions only if they haven't been loaded yet from cache
+      // final currencyProvider = context.read<CurrencyProvider>();
+      // transactionProvider.ensureLoaded(currencyProvider: currencyProvider);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

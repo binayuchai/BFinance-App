@@ -1,6 +1,7 @@
 import 'package:bfinance/features/settings/account/widgets/change_password_form.dart';
 import 'package:bfinance/features/settings/account/widgets/edit_name.dart';
 import 'package:bfinance/providers/auth_provider.dart';
+import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/features/settings/helper/section_label.dart';
@@ -148,6 +149,7 @@ class _AccountScreenState extends State<AccountScreen> {
                             ),
                             onPressed: () async {
                               Navigator.pop(context);
+                              context.read<TransactionProvider>().clear();
                               await context.read<AuthProvider>().logout();
                             },
                           ),

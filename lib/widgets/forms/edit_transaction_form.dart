@@ -1,6 +1,7 @@
 import 'package:bfinance/core/validators/amount_validator.dart';
 import 'package:bfinance/features/category/widgets/add_category.dart';
 import 'package:bfinance/providers/category_provider.dart';
+import 'package:bfinance/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +32,9 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
   String?
   _categoryError; // To hold validation error message for category selection
   String? titleError; // To hold validation error message for title field
+  String? _statusError; // inline error  for network errors or other issues
+  final ApiService api = ApiService();
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +85,8 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
   Future<void> _saveEdit() async {
     setState(() {
       isLoading = true;
+      _statusError = null; // Reset status error before validation
+      _categoryError = null; // Reset category error before validation
       _amountError = null; // Reset amount error before validation
     });
     try {
@@ -147,9 +153,9 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
         isLoading = false;
       });
       if (success) {
-        ScaffoldMessenger.of(
-          context,
-        ).clearSnackBars(); // clear "Updating..." first
+        // ScaffoldMessenger.of(
+        //   context,
+        // ).clearSnackBars(); // clear "Updating..." first
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Transaction updated successfully")),
@@ -157,28 +163,37 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
         if (!mounted) return;
         Navigator.pop(context, true); // Return true to indicate success
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).clearSnackBars(); // clear "Updating..." first
+        // ScaffoldMessenger.of(
+        //   context,
+        // ).clearSnackBars(); // clear "Updating..." first
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Failed to update transaction. Please try again."),
-          ),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(
+        //     content: Text("Failed to update transaction. Please try again."),
+        //   ),
+        // );
+        setState(() {
+          _statusError = "Failed to update transaction. Please try again.";
+        });
       }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).clearSnackBars(); // clear "Updating..." first
+      if (e.toString().contains('No valid access token')) {
+        return; // logout already redirecting, nothing to show here
+      }
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).clearSnackBars(); // clear "Updating..." first
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+      setState(() {
+        _statusError = "Network error: ${api.getFriendlyErrorMessage(e)}";
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -295,6 +310,16 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
               ),
 
               const SizedBox(height: 16.0),
+              // Inline error banner for network/server failures
+              if (_statusError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    _statusError!,
+                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               //Save Button
               SizedBox(
                 width: double.infinity,
@@ -307,19 +332,28 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
                               context,
                             ).unfocus(); // dismiss keyboard first
 
-                            ScaffoldMessenger.of(
-                              context,
-                            ).clearSnackBars(); //  clear queue first
+                            // ScaffoldMessenger.of(
+                            //   context,
+                            // ).clearSnackBars(); //  clear queue first
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Updating transaction..."),
-                              ),
-                            );
+                            // ScaffoldMessenger.of(context).showSnackBar(
+                            //   const SnackBar(
+                            //     content: Text("Updating transaction..."),
+                            //   ),
+                            // );
                             await _saveEdit();
                           }
                         },
-                  child: const Text("Save Transaction"),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text("Update Transaction"),
                 ),
               ),
             ],

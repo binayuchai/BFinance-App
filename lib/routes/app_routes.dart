@@ -31,4 +31,30 @@ class AppRoutes {
     privacy: (context) => const PrivacyScreen(),
     notification: (context) => const NotificationsScreen(),
   };
+
+  //Routes that should not show Offline Indicator
+  static const Set<String> hideIndicatorOnRoutes = {
+    '/home',
+    '/login',
+    '/register',
+  };
+
+  //Generate route based on route name
+  // Called whenever Navigator.pushName() is used
+
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    //look up the route builder
+    final WidgetBuilder? builder = routes[settings.name];
+
+    if (builder != null) {
+      return MaterialPageRoute(builder: builder, settings: settings);
+    }
+    // If route not found, show error page
+    return MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: Center(child: Text('No route defined for ${settings.name}')),
+      ),
+    );
+  }
 }

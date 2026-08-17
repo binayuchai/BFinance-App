@@ -1,7 +1,10 @@
+import 'package:bfinance/core/utils/route_observer.dart';
 import 'package:bfinance/providers/auth_provider.dart';
+import 'package:bfinance/providers/connectivity_provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/routes/app_routes.dart';
 import 'package:bfinance/services/notification_service.dart';
+import 'package:bfinance/widgets/offline_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:bfinance/navigation/core_navigation.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +24,16 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final _routeObserver = RouteTrackingObserver();
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -37,6 +46,7 @@ class MyApp extends StatelessWidget {
         //shortcut for ChangeNotifierProvider(
         //   create: (_) => ThemeProvider()..initialize(),
         // )
+        ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
         ChangeNotifierProvider(
           create: (_) => CategoryProvider()..initialize(),
         ), //  Holds & exposes category state; rebuilds UI on changes
@@ -58,14 +68,40 @@ class MyApp extends StatelessWidget {
         builder: (context, themeProvider, _) {
           return MaterialApp(
             title: 'BFinance Manager',
-            navigatorKey: navigatorKey, // Set the global navigator key
-            initialRoute: '/home',
+            navigatorKey: navigatorKey,
+            initialRoute: AppRoutes.home,
+            routes: AppRoutes.routes,
+            navigatorObservers: [_routeObserver],
             theme: themeProvider
                 .lightTheme, // Use the theme data from the provider
             darkTheme: themeProvider.darkTheme,
             themeMode:
                 themeProvider.themeMode, // Use the theme mode from the provider
-            routes: AppRoutes.routes,
+            builder: (context, child) {
+              return ValueListenableBuilder<String?>(
+                valueListenable: _routeObserver.currentRoute,
+                builder: (context, route, _) {
+                  final hideOnThisRoute =
+                      route == null ||
+                      AppRoutes.hideIndicatorOnRoutes.contains(route);
+                  return Consumer<ConnectivityProvider>(
+                    builder: (context, connectivity, _) {
+                      final showBanner =
+                          !hideOnThisRoute && connectivity.isOffline;
+                      return Column(
+                        children: [
+                          SafeArea(
+                            bottom: false,
+                            child: OfflineIndicator(isOnline: !showBanner),
+                          ),
+                          Expanded(child: child ?? const SizedBox.shrink()),
+                        ],
+                      );
+                    },
+                  );
+                },
+              );
+            },
           );
         },
       ),
