@@ -137,7 +137,28 @@ class _LoginFormState extends State<LoginForm> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 60),
+
+                    // Forgot password
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/forgot-password');
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.blue,
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(50, 30),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                     // ElevatedButton is used to submit the form
                     TextButton(
                       onPressed: _submit,

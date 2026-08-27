@@ -1,6 +1,9 @@
 import 'package:bfinance/features/app_shell/app_shell.dart';
+import 'package:bfinance/features/auth/view/forgot_password.dart';
 import 'package:bfinance/features/auth/view/login.dart';
+import 'package:bfinance/features/auth/view/new-password.dart';
 import 'package:bfinance/features/auth/view/register.dart';
+import 'package:bfinance/features/auth/view/verify_otp.dart';
 import 'package:bfinance/features/settings/account/account_screen.dart';
 import 'package:bfinance/features/settings/notifications/notifications_screen.dart';
 import 'package:bfinance/features/settings/privacy/privacy_screen.dart';
@@ -19,6 +22,9 @@ class AppRoutes {
   static const String appearance = "/appearance";
   static const String privacy = "/privacy";
   static const String notification = "/notification";
+  static const String forgotPassword = "/forgot-password";
+  static const String verifyOtp = "/verify-otp";
+  static const String newPassword = "/new-password";
 
   static Map<String, WidgetBuilder> routes = {
     home: (context) => const SplashScreen(),
@@ -30,6 +36,9 @@ class AppRoutes {
     appearance: (context) => const AppearanceScreen(),
     privacy: (context) => const PrivacyScreen(),
     notification: (context) => const NotificationsScreen(),
+    forgotPassword: (context) => const ForgotPassword(),
+    verifyOtp: (context) => const VerifyOtp(),
+    newPassword: (context) => const NewPassword(),
   };
 
   //Routes that should not show Offline Indicator
@@ -37,6 +46,9 @@ class AppRoutes {
     '/home',
     '/login',
     '/register',
+    '/forgot-password',
+    '/verify-otp',
+    '/new-password',
   };
 
   //Generate route based on route name

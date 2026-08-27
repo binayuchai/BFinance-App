@@ -8,8 +8,7 @@ class CategoryService {
   // final String apiUrl = 'http://127.0.0.1:8000/api/category/';
 
   // final String apiUrl = 'http://192.168.3.174:8000/api/category/';
-  final String apiUrl =
-      'https://footpad-oasis-tipped.ngrok-free.dev/api/category/';
+  final String apiUrl = 'https://bfinance-backend.onrender.com/api/category/';
   final ApiService api = ApiService();
 
   // Add methods for fetching and managing categories here

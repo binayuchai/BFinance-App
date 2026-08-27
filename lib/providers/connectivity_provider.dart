@@ -52,19 +52,6 @@ class ConnectivityProvider extends ChangeNotifier {
     }
   }
 
-  // Manually re-check connection
-  Future<void> recheckConnection() async {
-    if (_isChecking) return; // avoid overlapping check on rapid taps
-    _isChecking = true;
-    notifyListeners();
-    try {
-      await _initConnectivity();
-    } finally {
-      _isChecking = false;
-      notifyListeners();
-    }
-  }
-
   @override
   void dispose() {
     _subscription.cancel();

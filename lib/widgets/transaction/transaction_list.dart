@@ -53,7 +53,7 @@ class _TransactionListState extends State<TransactionList> {
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
             child: const Text(
               "Exchange rates may be outdated (offline)",
-              style: TextStyle(fontSize: 12, color: Colors.orange),
+              style: TextStyle(fontSize: 12),
             ),
           ),
         Expanded(

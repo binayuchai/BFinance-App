@@ -29,7 +29,7 @@ class ApiResult {
 class ApiService {
   // final String baseUrl = 'http://127.0.0.1:8000/user/api';
   // final String baseUrl = 'http://192.168.3.174:8000/user/api';
-  final String baseUrl = 'https://footpad-oasis-tipped.ngrok-free.dev/user/api';
+  final String baseUrl = 'https://bfinance-backend.onrender.com/user/api';
   final storage = FlutterSecureStorage();
   static const _defaultTimeout = Duration(seconds: 10);
 
@@ -620,6 +620,101 @@ class ApiService {
             response.body,
             // context: 'Change Password',
           ),
+        );
+      }
+    } catch (e) {
+      return ApiResult(
+        success: false,
+        errorMessage: getFriendlyErrorMessage(e),
+      );
+    }
+  }
+
+  //Send password reset OTP
+  Future<ApiResult> sendResetOtp(String email) async {
+    try {
+      final response = await authorizedRequest(
+        (headers) => http
+            .post(
+              Uri.parse('$baseUrl/send-reset-otp/'),
+              headers: headers,
+              body: jsonEncode({'email': email}),
+            )
+            .timeout(_defaultTimeout),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        debugPrint('Response for send reset OTP $data');
+        return ApiResult(success: true, successMessage: data['message']);
+      } else {
+        return ApiResult(
+          success: false,
+          errorMessage: _parseErrorMessage(response.body),
+        );
+      }
+    } catch (e) {
+      return ApiResult(
+        success: false,
+        errorMessage: getFriendlyErrorMessage(e),
+      );
+    }
+  }
+
+  //Verify password reset OTP
+  Future<ApiResult> verifyResetOtp(String email, String otp) async {
+    try {
+      final response = await authorizedRequest(
+        (headers) => http.post(
+          Uri.parse('$baseUrl/verify-reset-otp/'),
+          headers: headers,
+          body: jsonEncode({'email': email, 'otp': otp}),
+        ),
+      ).timeout(_defaultTimeout);
+      if (response.statusCode == 200) {
+        return ApiResult(success: true);
+      } else {
+        return ApiResult(
+          success: false,
+          errorMessage: _parseErrorMessage(response.body),
+        );
+      }
+    } catch (e) {
+      return ApiResult(
+        success: false,
+        errorMessage: getFriendlyErrorMessage(e),
+      );
+    }
+  }
+
+  //Reset password with verified OTP
+  Future<ApiResult> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String password,
+    required String password2,
+  }) async {
+    try {
+      final response = await authorizedRequest(
+        (headers) => http.post(
+          Uri.parse('$baseUrl/reset-password-otp/'),
+          headers: headers,
+          body: jsonEncode({
+            'email': email,
+            'otp': otp,
+            'password': password,
+            'password2': password2,
+          }),
+        ),
+      ).timeout(_defaultTimeout);
+      if (response.statusCode == 200) {
+        return ApiResult(
+          success: true,
+          successMessage: 'Password reset successful.',
+        );
+      } else {
+        return ApiResult(
+          success: false,
+          errorMessage: _parseErrorMessage(response.body),
         );
       }
     } catch (e) {

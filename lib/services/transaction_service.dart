@@ -8,7 +8,7 @@ class TransactionService {
   // final String apiUrl = 'http://127.0.0.1:8000/api/transaction/';
   // final String apiUrl = 'http://192.168.3.174:8000/api/transaction/';
   final String apiUrl =
-      'https://footpad-oasis-tipped.ngrok-free.dev/api/transaction/';
+      'https://bfinance-backend.onrender.com/api/transaction/';
   final ApiService api = ApiService();
 
   //GET Transactions from API
