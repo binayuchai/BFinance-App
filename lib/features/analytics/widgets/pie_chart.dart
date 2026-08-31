@@ -14,6 +14,7 @@ class ExpenseDonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     // fl_chart cannot render a meaningful pie when every value is zero or
     // invalid. Filter those values before building sections and the legend.
     final entries = pieData.entries
@@ -69,13 +70,17 @@ class ExpenseDonutChart extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ),
 
                     Text(
                       'Total Expense',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -107,7 +112,10 @@ class ExpenseDonutChart extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   '${element.key} (${percentage.toStringAsFixed(1)}%)',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             );

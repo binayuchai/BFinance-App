@@ -74,6 +74,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
 
   Future<void> _save() async {
     if (!_validate()) return;
+    FocusScope.of(context).unfocus();
     setState(() {
       _isLoading = true;
     });

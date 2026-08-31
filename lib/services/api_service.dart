@@ -31,7 +31,7 @@ class ApiService {
   // final String baseUrl = 'http://192.168.3.174:8000/user/api';
   final String baseUrl = 'https://bfinance-backend.onrender.com/user/api';
   final storage = FlutterSecureStorage();
-  static const _defaultTimeout = Duration(seconds: 10);
+  static const _defaultTimeout = Duration(seconds: 30);
 
   String getFriendlyErrorMessage(Object error) {
     if (error is HandshakeException) {
@@ -598,16 +598,18 @@ class ApiService {
   }) async {
     try {
       final response = await authorizedRequest(
-        (headers) => http.post(
-          Uri.parse('$baseUrl/change-password/'),
-          headers: headers,
-          body: jsonEncode({
-            'old_password': oldPassword,
-            'password': password,
-            'password2': password2,
-          }),
-        ),
-      );
+            (headers) => http.post(
+                Uri.parse('$baseUrl/change-password/'), headers: headers,
+                body: jsonEncode({
+                  'old_password': oldPassword,
+                  'password': password,
+                  'password2': password2,
+                }),
+              ),
+            ).timeout(_defaultTimeout);
+
+
+
       if (response.statusCode == 200) {
         return ApiResult(
           success: true,
@@ -633,15 +635,14 @@ class ApiService {
   //Send password reset OTP
   Future<ApiResult> sendResetOtp(String email) async {
     try {
-      final response = await authorizedRequest(
-        (headers) => http
-            .post(
-              Uri.parse('$baseUrl/send-reset-otp/'),
-              headers: headers,
-              body: jsonEncode({'email': email}),
-            )
-            .timeout(_defaultTimeout),
-      );
+      final response = await http
+        .post(
+      Uri.parse('$baseUrl/send-reset-otp/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+      ).timeout(_defaultTimeout);
+      debugPrint('response for send reset OTP ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         debugPrint('Response for send reset OTP $data');
@@ -663,12 +664,10 @@ class ApiService {
   //Verify password reset OTP
   Future<ApiResult> verifyResetOtp(String email, String otp) async {
     try {
-      final response = await authorizedRequest(
-        (headers) => http.post(
-          Uri.parse('$baseUrl/verify-reset-otp/'),
-          headers: headers,
-          body: jsonEncode({'email': email, 'otp': otp}),
-        ),
+      final response = await http.post(
+        Uri.parse('$baseUrl/verify-reset-otp/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
       ).timeout(_defaultTimeout);
       if (response.statusCode == 200) {
         return ApiResult(success: true);
@@ -694,17 +693,15 @@ class ApiService {
     required String password2,
   }) async {
     try {
-      final response = await authorizedRequest(
-        (headers) => http.post(
-          Uri.parse('$baseUrl/reset-password-otp/'),
-          headers: headers,
-          body: jsonEncode({
-            'email': email,
-            'otp': otp,
-            'password': password,
-            'password2': password2,
-          }),
-        ),
+      final response = await http.post(
+        Uri.parse('$baseUrl/reset-password-otp/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+          'password': password,
+          'password2': password2,
+        }),
       ).timeout(_defaultTimeout);
       if (response.statusCode == 200) {
         return ApiResult(

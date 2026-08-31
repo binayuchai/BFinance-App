@@ -23,34 +23,33 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   }
 
   Future<void> _handleSendOtp() async {
-    // if (!_formKey.currentState!.validate()) return;
-    // setState(() {
-    //   _isLoading = true;
-    //   _errorMessage = null;
-    // });
-    // final result = await _apiService.sendResetOtp(_emailController.text);
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus(); // Close keyboard
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    final email = _emailController.text.trim();
+    final result = await _apiService.sendResetOtp(email);
+    debugPrint("Result: ${result.errorMessage}");
 
-    // if (!mounted) return;
-    // setState(() {
-    //   _isLoading = false;
-    // });
-    // if (result.success) {
-    //   Navigator.pushNamed(
-    //     context,
-    //     AppRoutes.verifyOtp,
-    //     arguments: _emailController.text.trim(),
-    //   );
-    // } else {
-    //   setState(() {
-    //     _errorMessage = result.errorMessage;
-    //   });
-    // }
+    if (!mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
+    if (result.success) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.verifyOtp,
+        arguments: email,
+      );
+    } else {
+      setState(() {
+        _errorMessage = result.errorMessage;
+      });
+    }
 
-    Navigator.pushNamed(
-      context,
-      AppRoutes.verifyOtp,
-      arguments: _emailController.text.trim(),
-    );
+
   }
 
   @override
@@ -61,6 +60,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Form(
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

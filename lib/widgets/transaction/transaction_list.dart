@@ -71,14 +71,51 @@ class _TransactionListState extends State<TransactionList> {
                   padding: const EdgeInsets.only(right: 16.0),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
+                confirmDismiss: (direction) async {
+                  return await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Confirm"),
+                        content: const Text(
+                          "Are you sure you want to delete this transaction?",
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text("CANCEL"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: const Text("DELETE"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
                 onDismissed: (direction) async {
-                  final success = await context
-                      .read<TransactionProvider>()
-                      .deleteTransactionProvider(tx.id!);
+                  final provider = context.read<TransactionProvider>();
+                  final currencyProvider = context.read<CurrencyProvider>();
+
+                  final removedIndex = provider.transactions.indexOf(tx);
+                  provider.removeTransactionLocally(tx.id!); // remove first
+
+                  final success = await provider.deleteTransactionProvider(
+                    tx.id!,
+                  );
                   if (!context.mounted) return;
-                  if (!success) {
+                  if (!success && context.mounted) {
+                    provider.restoreTransactionLocally(
+                      removedIndex,
+                      tx,
+                      currencyProvider,
+                    );
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           "Failed to delete the transaction. Please try again.",
                         ),

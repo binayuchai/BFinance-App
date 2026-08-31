@@ -22,6 +22,7 @@ class _LoginFormState extends State<LoginForm> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
+      FocusScope.of(context).unfocus(); // Close keyboard on submit
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 

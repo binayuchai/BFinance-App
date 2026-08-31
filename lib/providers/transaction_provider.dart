@@ -164,9 +164,20 @@ class TransactionProvider extends ChangeNotifier {
     try {
       final transactionService = TransactionService();
       final success = await transactionService.deleteTransaction(id);
+
       if (success) {
         //Remove the transaction from the list
-        transactions.removeWhere((t) => t.id == id);
+        // transactions.removeWhere((t) => t.id == id);
+        // _convertedAmounts.remove(id);
+
+        // Update the cache
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'cached_transactions',
+          jsonEncode(transactions.map((tx) => tx.toJson()).toList()),
+        );
+        debugPrint("Transaction deleted and cache updated.");
+
         notifyListeners();
 
         return true;
@@ -315,5 +326,31 @@ class TransactionProvider extends ChangeNotifier {
         );
       }
     }
+  }
+
+  // 1. Pure, synchronous, local-only removal — no async work at all
+  void removeTransactionLocally(int id) {
+    transactions.removeWhere((t) => t.id == id);
+    _convertedAmounts.remove(id);
+    notifyListeners();
+  }
+
+  //Restore if the API delete fails
+  void restoreTransactionLocally(
+    int index,
+    Transaction tx,
+    CurrencyProvider currencyProvider,
+  ) async {
+    final safeIndex = index.clamp(0, transactions.length);
+    transactions.insert(safeIndex, tx);
+    try {
+      _convertedAmounts[tx.id!] = await currencyProvider.convertAmount(
+        tx.amount,
+        tx.currencyCode,
+      );
+    } catch (e) {
+      debugPrint("Error re-converting restored transaction amount: $e");
+    }
+    notifyListeners();
   }
 }

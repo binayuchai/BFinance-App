@@ -1,4 +1,5 @@
 import 'package:bfinance/services/api_service.dart';
+import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -91,6 +92,8 @@ class TransactionService {
       final response = await api.authorizedRequest(
         (headers) => http.delete(Uri.parse('$apiUrl$id/'), headers: headers),
       );
+      debugPrint("🔵 Got response, status: ${response.statusCode}");
+
       if (response.statusCode == 204) {
         print("Transaction deleted successfully.");
         return true;

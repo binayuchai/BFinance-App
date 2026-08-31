@@ -22,10 +22,11 @@ class _RegisterFormState extends State<RegisterForm> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
+      FocusScope.of(context).unfocus(); // Close keyboard on submit
       final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
+      final password = _passwordController.text;
       final name = _nameController.text.trim();
-      final confirmPassword = _confirmPasswordController.text.trim();
+      final confirmPassword = _confirmPasswordController.text;
 
       print("Email: $email");
       print("Password: $password");
@@ -168,6 +169,9 @@ class _RegisterFormState extends State<RegisterForm> {
                         if (value == null || value.isEmpty) {
                           return "Please confirm your password";
                         }
+                        if(value != _passwordController.text){
+                          return "Passwords do not match";
+                        }
                         return null;
                       },
                     ),
@@ -195,7 +199,7 @@ class _RegisterFormState extends State<RegisterForm> {
                           const SizedBox(width: 5),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushReplacementNamed(context, '/');
+                              Navigator.pushReplacementNamed(context, '/login');
                             },
                             child: const Text(
                               "Login",
