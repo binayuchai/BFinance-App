@@ -15,8 +15,18 @@
 ## Security
 We take appropriate measures to protect your data.
 
+## Data Deletion
+To request deletion of your account and associated data, please email us at:
+**bfinance.app@58@gmail.com**
+
+Include:
+- Your request subject: "Delete my BFinance account"
+- Any account details you remember
+
+We will process deletion requests within 30 days.
+
 ## Changes to This Policy
 We may update this policy at any time. Updates will be posted here.
 
 ## Contact
-Questions? Email: workwithbinay58gmail.com
+Questions? Email: bfinance.app@58@gmail.com

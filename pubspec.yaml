@@ -110,5 +110,5 @@ dependency_overrides:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/logo/bfinance_logo_2.png"
+  image_path: "assets/logo/bfinance_logo_3.png"
   min_sdk_version: 21
