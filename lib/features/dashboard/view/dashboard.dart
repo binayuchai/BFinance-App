@@ -1,4 +1,5 @@
 import 'package:bfinance/features/dashboard/view/widgets/balance_card.dart';
+import 'package:bfinance/features/dashboard/view/widgets/recent_transactions.dart';
 import 'package:bfinance/providers/currency_provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:bfinance/widgets/transaction/transaction_list.dart';
@@ -16,16 +17,9 @@ class DashboardWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           BalanceCard(),
-          const SizedBox(height: 20),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Recent Transactions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Expanded(child: TransactionList()),
+          const SizedBox(height: 12),
+          RecentTransactions(limit: 5),
+          SizedBox(height: 20),
         ],
       ),
     );

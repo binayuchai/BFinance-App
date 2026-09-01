@@ -81,7 +81,7 @@ class Analytics extends StatelessWidget {
               const SizedBox(height: 20),
               SizedBox(
                 // 200px for the donut plus space for the category legend.
-                height: 300,
+                // height: 300,
                 child: ExpenseDonutChart(
                   pieData: summary.getPieChartData,
                   currencyCode: currencyCode,
@@ -110,54 +110,12 @@ class Analytics extends StatelessWidget {
                       labels: months,
                       currencyCode: currencyCode,
                     ),
+                    const SizedBox(
+                      height: 20,
+                    ), // bottom breathing room after last section
                   ],
                 ),
               ),
-
-              /* SizedBox(
-                  height: 250,
-                  child: BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: 6000,
-                      titlesData: FlTitlesData(
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            interval: 1000,
-                          ),
-                        ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              final index = value.toInt();
-                              if (index < days.length) {
-                                return Text(days[index]);
-                              }
-                              return const Text("");
-                            },
-                          ),
-                        ),
-                      ),
-                      barGroups: List.generate(dailyExpenses.length, (index) {
-                        return BarChartGroupData(
-                          x: index,
-                          barRods: [
-                            BarChartRodData(
-                              toY: dailyExpenses[index],
-                              color: Colors.red,
-                              width: 16,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ],
-                        );
-                      }),
-                    ),
-                    duration: Duration(milliseconds: 1500), // Optional
-                    curve: Curves.easeInBack, // Optional
-                  ),
-                ),  */
             ],
           ),
         ),

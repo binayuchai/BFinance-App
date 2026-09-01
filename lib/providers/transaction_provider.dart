@@ -41,10 +41,25 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _persistTransactionsToCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'cached_transactions',
+      jsonEncode(transactions.map((tx) => tx.toJson()).toList()),
+    );
+  }
+
   Future<void> fetchTransactions({
     required CurrencyProvider currencyProvider,
+    bool forceRefresh = false,
   }) async {
-    if (_isLoaded || _isLoading) return; // Prevent redundant fetches
+    // forceRefresh bypasses the "already loaded" guard so ensureLoaded can
+    // trigger a real background refresh even after the first load.
+    if (!forceRefresh && (_isLoaded || _isLoading)) {
+      return; // Prevent redundant fetches
+    }
+    if (_isLoading) return; // still avoid overlapping fetches even when forcing
+
     final token = await ApiService().getAccessToken();
     if (token == null) {
       _error = "User not authenticated";
@@ -66,11 +81,12 @@ class TransactionProvider extends ChangeNotifier {
         _error = null;
 
         // Cache the transactions in local storage
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-          'cached_transactions',
-          jsonEncode(transactions.map((tx) => tx.toJson()).toList()),
-        );
+        // final prefs = await SharedPreferences.getInstance();
+        // await prefs.setString(
+        //   'cached_transactions',
+        //   jsonEncode(transactions.map((tx) => tx.toJson()).toList()),
+        // );
+        await _persistTransactionsToCache();
         debugPrint("Transactions cached successfully. ${transactions.length}");
 
         //call the converted amount after fetch transactions (since we cached raw amount in cache so we need to convert it to current currency)
@@ -85,7 +101,12 @@ class TransactionProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error fetching transactions: $e");
       //fallback to cached transactions if available
-      await loadCachedTransactions(currencyProvider: currencyProvider);
+      // Only needed on cold-start/direct calls where cache hasn't been
+      // loaded yet. ensureLoaded already loads cache before calling this
+      // with forceRefresh: true, so avoid a redundant double-load there.
+      if (!forceRefresh) {
+        await loadCachedTransactions(currencyProvider: currencyProvider);
+      }
       _error = "Showing old transactions";
     } finally {
       _isLoading = false;
@@ -110,7 +131,7 @@ class TransactionProvider extends ChangeNotifier {
           savedTx.amount,
           savedTx.currencyCode,
         );
-
+        await _persistTransactionsToCache(); // Update the cache after adding
         notifyListeners();
 
         //check budget alert after adding
@@ -143,7 +164,8 @@ class TransactionProvider extends ChangeNotifier {
           //only convert the updated transaction amount instead of refetching all transactions
           _convertedAmounts[updatedTx.id!] = await currencyProvider
               .convertAmount(updatedTx.amount, updatedTx.currencyCode);
-
+          // Persist immediately so a reload reflects the edit
+          await _persistTransactionsToCache();
           notifyListeners();
         }
         //check budget alert after editing
@@ -171,11 +193,7 @@ class TransactionProvider extends ChangeNotifier {
         // _convertedAmounts.remove(id);
 
         // Update the cache
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-          'cached_transactions',
-          jsonEncode(transactions.map((tx) => tx.toJson()).toList()),
-        );
+        await _persistTransactionsToCache();
         debugPrint("Transaction deleted and cache updated.");
 
         notifyListeners();
@@ -220,18 +238,22 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> ensureLoaded({
     required CurrencyProvider currencyProvider,
   }) async {
-    if (transactions.isNotEmpty) {
-      return;
-    }
+    // if (transactions.isNotEmpty) {
+    //   return;
+    // }
     //try to load from cache first
-    await loadCachedTransactions(currencyProvider: currencyProvider);
 
     //if cache is still empty, fetch from API when we have internet connection
+
+    final token = await ApiService().getAccessToken();
+    if (token != null) {
+      await fetchTransactions(
+        currencyProvider: currencyProvider,
+        forceRefresh: true,
+      );
+    }
     if (transactions.isEmpty) {
-      final token = await ApiService().getAccessToken();
-      if (token != null) {
-        await fetchTransactions(currencyProvider: currencyProvider);
-      }
+      await loadCachedTransactions(currencyProvider: currencyProvider);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:bfinance/core/utils/amount_formatter.dart';
+import 'package:bfinance/widgets/transaction/transaction_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
@@ -123,10 +124,48 @@ class _TransactionListState extends State<TransactionList> {
                     );
                   }
                 },
-                child: ListTile(
+                // child: ListTile(
+                //   onTap: () async {
+                //     // Navigate to details or edit screen
+                //     final result = await showModalBottomSheet(
+                //       context: context,
+                //       isScrollControlled: true,
+                //       builder: (context) {
+                //         return EditTransactionForm(transactions: tx);
+                //       },
+                //     );
+                //   },
+                //   leading: tx.icon,
+                //   title: Text(
+                //     tx.title,
+                //     style: TextStyle(fontWeight: FontWeight.w500),
+                //   ),
+                //   subtitle: Text(
+                //     AmountFormatter.formatAmountSync(
+                //       transactionProvider.getConvertedAmount(tx.id!),
+                //       currencyProvider.currencyCode,
+                //     ),
+                //     style: TextStyle(
+                //       color: tx.isIncome ? Colors.green : Colors.red,
+                //     ),
+                //   ),
+                //   trailing: Column(
+                //     mainAxisAlignment: MainAxisAlignment.center,
+                //     crossAxisAlignment: CrossAxisAlignment.center,
+                //     children: [
+                //       Text(DateTimeFormatter.formatDate(tx.date)),
+                //       Text(DateTimeFormatter.formatTime(tx.time)),
+                //     ],
+                //   ),
+                // ),
+                child: TransactionTile(
+                  tx: tx,
+                  convertedAmount: transactionProvider.getConvertedAmount(
+                    tx.id!,
+                  ),
+                  currencySymbol: currencyProvider.currencyCode,
                   onTap: () async {
-                    // Navigate to details or edit screen
-                    final result = await showModalBottomSheet(
+                    await showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       builder: (context) {
@@ -134,28 +173,6 @@ class _TransactionListState extends State<TransactionList> {
                       },
                     );
                   },
-                  leading: tx.icon,
-                  title: Text(
-                    tx.title,
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  subtitle: Text(
-                    AmountFormatter.formatAmountSync(
-                      transactionProvider.getConvertedAmount(tx.id!),
-                      currencyProvider.currencyCode,
-                    ),
-                    style: TextStyle(
-                      color: tx.isIncome ? Colors.green : Colors.red,
-                    ),
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(DateTimeFormatter.formatDate(tx.date)),
-                      Text(DateTimeFormatter.formatTime(tx.time)),
-                    ],
-                  ),
                 ),
               );
             },
