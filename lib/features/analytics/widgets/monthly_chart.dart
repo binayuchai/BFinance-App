@@ -1,3 +1,4 @@
+import 'package:bfinance/features/analytics/helper/chart_theme.dart';
 import 'package:bfinance/features/analytics/helper/format_currency.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ class MonthlyChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final chartTheme = ChartTheme.of(context);
+
     final maxValue = values.isEmpty
         ? 100.0
         : values.fold(0.0, (a, b) => a > b ? a : b);
@@ -62,8 +65,9 @@ class MonthlyChart extends StatelessWidget {
             lineTouchData: LineTouchData(
               enabled: true,
               touchTooltipData: LineTouchTooltipData(
-                getTooltipColor: (touchedSpot) =>
-                    colorScheme.secondaryContainer,
+                getTooltipColor: (touchedSpot) => chartTheme
+                    .tooltipBackground, // Use theme color for tooltip background
+
                 getTooltipItems: (touchedSpots) {
                   return touchedSpots.map((spot) {
                     return LineTooltipItem(
@@ -149,11 +153,7 @@ class MonthlyChart extends StatelessWidget {
                           value,
                           currencyCode,
                         ), // Format Y-axis values as currency
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: colorScheme.onSurface,
-                        ),
+                        style: chartTheme.smallAxisLabelStyle,
                         textAlign: TextAlign.right,
                       ),
                     );
@@ -172,11 +172,9 @@ class MonthlyChart extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           labels[index],
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: colorScheme.onSurface,
-                          ),
+                          style: chartTheme.smallAxisLabelStyle,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       );
                     } else {

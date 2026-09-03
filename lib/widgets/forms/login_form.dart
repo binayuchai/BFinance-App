@@ -82,10 +82,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData.light(),
-
-      child: SafeArea(
+    return SafeArea(
         child: Scaffold(
           body: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -206,7 +203,7 @@ class _LoginFormState extends State<LoginForm> {
             ),
           ),
         ),
-      ),
+
     );
   }
 

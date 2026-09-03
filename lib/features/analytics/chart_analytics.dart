@@ -1,4 +1,5 @@
 import 'package:bfinance/features/analytics/widgets/weekly_chart.dart';
+import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,10 +10,30 @@ import 'package:bfinance/providers/currency_provider.dart';
 class Analytics extends StatelessWidget {
   const Analytics({super.key});
 
+  // // helper function to format currency values based on the selected currency code
+  // Future<List<double>> _convertExpenses(
+  //   List<double> expenses,
+  //   List<Transaction> transactions,
+  //   CurrencyProvider currencyProvider,
+  // ) async {
+  //   List<double> convertedExpenses = [];
+
+  //   for (var transaction in transactions) {
+  //     double convertedValue = await currencyProvider.convertAmount(
+  //       transaction.amount,
+  //       transaction.currencyCode,
+  //     );
+  //     convertedExpenses.add(convertedValue);
+  //   }
+
+  //   return convertedExpenses;
+  // }
+
   @override
   Widget build(BuildContext context) {
     final summary = context.watch<TransactionProvider>().summary;
     final currencyCode = context.watch<CurrencyProvider>().currencyCode;
+    final currencyProvider = context.watch<CurrencyProvider>();
 
     // double totalExpense = summary.totalExpenses;
     final List<String> days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -54,6 +75,12 @@ class Analytics extends StatelessWidget {
         ),
       );
     }
+
+    // recalculate conversions when currency changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TransactionProvider>().convertAllAmount(currencyProvider);
+    });
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -100,13 +127,13 @@ class Analytics extends StatelessWidget {
                 child: TabBarView(
                   children: [
                     WeeklyChart(
-                      values: dailyExpenses,
+                      values: summary.getWeeklyExpenses,
                       labels: days,
                       currencyCode: currencyCode,
                     ),
 
                     MonthlyChart(
-                      values: monthlyExpenses,
+                      values: summary.getMonthlyExpenses,
                       labels: months,
                       currencyCode: currencyCode,
                     ),

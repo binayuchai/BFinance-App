@@ -25,7 +25,7 @@ class TransactionTile extends StatelessWidget {
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
-        AmountFormatter.formatAmountSync(tx.amount, tx.currencyCode),
+        AmountFormatter.formatAmountSync(convertedAmount, currencySymbol),
         style: TextStyle(color: tx.isIncome ? Colors.green : Colors.red),
       ),
       trailing: Column(

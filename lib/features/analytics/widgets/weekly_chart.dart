@@ -37,7 +37,7 @@ class WeeklyChart extends StatelessWidget {
         return SizedBox(
           height: 270,
           child: Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: 16),
 
             child: BarChart(
               BarChartData(

@@ -1,4 +1,4 @@
-package com.example.bfinance
+package com.bfinance.app
 
 // import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterFragmentActivity

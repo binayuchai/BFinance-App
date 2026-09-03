@@ -75,26 +75,46 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   //generate light theme data
-  ThemeData get lightTheme => ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(
+  ThemeData get lightTheme {
+    final colorScheme = ColorScheme.fromSeed(
       seedColor: _accentColor,
       brightness: Brightness.light,
-    ),
-    fontFamily: 'Poppins',
-    textTheme: _textTheme,
-  );
+    );
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      fontFamily: 'Poppins',
+      textTheme: _textTheme,
+      scaffoldBackgroundColor:
+          colorScheme.surface, // Set scaffold background to white
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        elevation: 0, // No elevation by default
+        scrolledUnderElevation: 0, // Shadow when scrolled under
+      ),
+    );
+  }
 
   //generate dark theme data
-  ThemeData get darkTheme => ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(
+  ThemeData get darkTheme {
+    final colorScheme = ColorScheme.fromSeed(
       seedColor: _accentColor,
       brightness: Brightness.dark,
-    ),
-    fontFamily: 'Poppins',
-    textTheme: _textTheme,
-  );
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      fontFamily: 'Poppins',
+      textTheme: _textTheme,
+      scaffoldBackgroundColor: colorScheme.surface, // Use surface color
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface, // SAME as scaffold
+        elevation: 0, // No elevation by default
+        scrolledUnderElevation: 0, // Shadow only when scrolled
+      ),
+    );
+  }
 
   // Scale text theme based on the selected font size
   TextTheme get _textTheme => TextTheme(

@@ -68,6 +68,7 @@ class _MyAppState extends State<MyApp> {
         builder: (context, themeProvider, _) {
           return MaterialApp(
             title: 'BFinance Manager',
+            debugShowCheckedModeBanner: false,
             navigatorKey: navigatorKey,
             initialRoute: AppRoutes.home,
             routes: AppRoutes.routes,
