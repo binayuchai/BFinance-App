@@ -1,7 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
@@ -15,8 +17,14 @@ class NotificationService {
   Future<void> initialize() async {
     //initialize timezone
     tz.initializeTimeZones();
+
+    // read local timezone from device and set it
+    final TimezoneInfo currentTimeZone =
+        await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(currentTimeZone.identifier));
+
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@mipmap/launcher_icon', // app icon for notification
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,

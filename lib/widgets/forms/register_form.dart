@@ -19,6 +19,9 @@ class _RegisterFormState extends State<RegisterForm> {
       TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final ApiService api = ApiService();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
@@ -31,7 +34,7 @@ class _RegisterFormState extends State<RegisterForm> {
       print("Email: $email");
       print("Password: $password");
       print("Name: $name");
-
+      setState(() => _isLoading = true);
       try {
         // Call the registration API
         final result = await api.registerUser(
@@ -74,7 +77,8 @@ class _RegisterFormState extends State<RegisterForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Network error: ${e.toString()}")),
         );
-        print("Registration error: $e");
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -82,141 +86,183 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: Scaffold(
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height,
+      child: Scaffold(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: SizedBox(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height,
 
-              child: Form(
-                key: _formKey,
+            child: Form(
+              key: _formKey,
 
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: "Your Name",
-                        hintText: "John Doe",
-                        prefixIcon: Icon(Icons.person, color: Colors.blue),
-                      ),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your name";
-                        }
-                        return null;
-                      },
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  TextFormField(
+                    controller: _nameController,
+                    enabled: !_isLoading, // Disable input when loading
+                    keyboardType: TextInputType.name,
+                    decoration: const InputDecoration(
+                      labelText: "Your Name",
+                      hintText: "John Doe",
+                      prefixIcon: Icon(Icons.person, color: Colors.blue),
                     ),
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter your name";
+                      }
+                      return null;
+                    },
+                  ),
 
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: "Email Address",
-                        hintText: "Enter your email",
-                        prefixIcon: Icon(
-                          Icons.email_outlined,
-                          color: Colors.blue,
+                  TextFormField(
+                    controller: _emailController,
+                    enabled: !_isLoading, // Disable input when loading
+                    keyboardType: TextInputType.emailAddress,
+
+                    decoration: const InputDecoration(
+                      labelText: "Email Address",
+                      hintText: "Enter your email",
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter your email";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  TextFormField(
+                    controller: _passwordController,
+                    enabled: !_isLoading,
+                    obscureText: _obscurePassword, // Hides the password input
+                    decoration: InputDecoration(
+                      hintText: "Enter your password",
+                      labelText: "Password",
+                      prefixIcon: const Icon(
+                        Icons.lock_outline,
+                        color: Colors.blue,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                       ),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your email";
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 20),
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter your password";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
 
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true, // Hides the password input
-                      decoration: InputDecoration(
-                        hintText: "Enter your password",
-                        labelText: "Password",
-                        prefixIcon: const Icon(
-                          Icons.lock_outline,
-                          color: Colors.blue,
-                        ),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    enabled: !_isLoading,
+                    obscureText:
+                        _obscureConfirmPassword, // Hides the password input
+                    decoration: InputDecoration(
+                      hintText: "Confirm your password",
+                      labelText: "Confirm Password",
+                      prefixIcon: const Icon(
+                        Icons.lock_outline,
+                        color: Colors.blue,
                       ),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your password";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: true, // Hides the password input
-                      decoration: InputDecoration(
-                        hintText: "Confirm your password",
-                        labelText: "Confirm Password",
-                        prefixIcon: const Icon(
-                          Icons.lock_outline,
-                          color: Colors.blue,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
                       ),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please confirm your password";
-                        }
-                        if(value != _passwordController.text){
-                          return "Passwords do not match";
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 60),
-                    // ElevatedButton is used to submit the form
-                    TextButton(
-                      onPressed: _submit,
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 15,
-                        ),
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please confirm your password";
+                      }
+                      if (value != _passwordController.text) {
+                        return "Passwords do not match";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 60),
+                  // ElevatedButton is used to submit the form
+                  TextButton(
+                    onPressed: _isLoading ? null : _submit,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 15,
                       ),
-                      child: Text("Register"),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text("Have an account?"),
-                          const SizedBox(width: 5),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacementNamed(context, '/login');
-                            },
-                            child: const Text(
-                              "Login",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.blue,
-                              ),
+                    child: Text("Register"),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text("Have an account?"),
+                        const SizedBox(width: 5),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacementNamed(context, '/login');
+                          },
+                          child: const Text(
+                            "Login",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.blue,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
 
+        bottomNavigationBar: SizedBox(
+          height: 4.0, // Height of the LinearProgressIndicator
+          child: _isLoading
+              ? const LinearProgressIndicator(
+                  backgroundColor: Colors.grey,
+                  color: Colors.blue,
+                )
+              : const SizedBox.shrink(),
+        ),
+      ),
     );
   }
 

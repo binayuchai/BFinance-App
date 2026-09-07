@@ -19,6 +19,8 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _passwordController = TextEditingController();
   final ApiService api = ApiService();
   final storage = FlutterSecureStorage();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
@@ -26,26 +28,24 @@ class _LoginFormState extends State<LoginForm> {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      print("Email: $email");
-      print("Password: $password");
+      setState(() => _isLoading = true);
 
       try {
         // Call the login API
         final result = await api.loginUser(email, password);
+        if (!mounted) return;
 
         if (result.success) {
-          if (!mounted) return;
-          print("Login successful");
-          final token = await api.getAccessToken();
-          print("Login dashboard token : $token");
           context.read<CategoryProvider>().resetCategories();
           await context.read<CategoryProvider>().fetchCategories();
           await context.read<AuthProvider>().loadProfile();
           await context.read<CurrencyProvider>().syncCurrencyWithBackend();
+          if (!mounted) return;
+
           Navigator.pushReplacementNamed(context, '/dashboard');
         } else {
-          // Show error message from backend
           if (!mounted) return;
+          // Show error message from backend
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -53,7 +53,6 @@ class _LoginFormState extends State<LoginForm> {
               ),
             ),
           );
-          print("Login failed: ${result.errorMessage}");
         }
       } catch (e) {
         // Handle API errors
@@ -61,7 +60,8 @@ class _LoginFormState extends State<LoginForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Network error: ${e.toString()}")),
         );
-        print("Login error: $e");
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -83,127 +83,151 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: Scaffold(
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height,
+      child: Scaffold(
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: SizedBox(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height,
 
-              child: Form(
-                key: _formKey,
+            child: Form(
+              key: _formKey,
 
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: "Email Address",
-                        hintText: "Enter your email",
-                        prefixIcon: Icon(
-                          Icons.email_outlined,
-                          color: Colors.blue,
-                        ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  TextFormField(
+                    controller: _emailController,
+                    enabled: !_isLoading, // Disable input when loading
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: "Email Address",
+                      hintText: "Enter your email",
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: Colors.blue,
                       ),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your email";
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 20),
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter your email";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
 
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true, // Hides the password input
-                      decoration: InputDecoration(
-                        hintText: "Enter your password",
-                        labelText: "Password",
-                        prefixIcon: const Icon(
-                          Icons.lock_outline,
-                          color: Colors.blue,
-                        ),
+                  TextFormField(
+                    controller: _passwordController,
+                    enabled: !_isLoading,
+                    obscureText: _obscurePassword, // Hides the password input
+                    decoration: InputDecoration(
+                      hintText: "Enter your password",
+                      labelText: "Password",
+                      prefixIcon: const Icon(
+                        Icons.lock_outline,
+                        color: Colors.blue,
                       ),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your password";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    // Forgot password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                        ),
                         onPressed: () {
-                          Navigator.pushNamed(context, '/forgot-password');
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
                         },
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.blue,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(50, 30),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+                      ),
+                    ),
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter your password";
+                      }
+                      return null;
+                    },
+                  ),
 
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    // ElevatedButton is used to submit the form
-                    TextButton(
-                      onPressed: _submit,
+                  // Forgot password
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/forgot-password');
+                      },
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 15,
-                        ),
+                        foregroundColor: Colors.blue,
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(50, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: Text("Login"),
+
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text("Don't have an account?"),
-                          const SizedBox(width: 5),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/register',
-                              );
-                            },
-                            child: const Text(
-                              "Register",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.blue,
-                              ),
+                  ),
+                  const SizedBox(height: 40),
+                  // ElevatedButton is used to submit the form
+                  TextButton(
+                    onPressed: _isLoading ? null : _submit,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 15,
+                      ),
+                    ),
+                    child: Text("Login"),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text("Don't have an account?"),
+                        const SizedBox(width: 5),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/register',
+                            );
+                          },
+                          child: const Text(
+                            "Register",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.blue,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-
+        // fixed bottom spinner when loading
+        bottomNavigationBar: SizedBox(
+          height: 4.0, // Height of the LinearProgressIndicator
+          child: _isLoading
+              ? const LinearProgressIndicator(
+                  backgroundColor: Colors.grey,
+                  color: Colors.blue,
+                )
+              : const SizedBox.shrink(),
+        ),
+      ),
     );
   }
 
