@@ -24,6 +24,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   double _totalBudgetLimit = 0.0;
   String _budgetCurrencyCode = 'USD';
   Map<int, double> _categoryLimits = {}; //categoryId → limit
+  bool _hasAppliedDefaults = false;
 
   // reminder time
   TimeOfDay _reminderTime = const TimeOfDay(
@@ -41,6 +42,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
+
+
 
     final currencyProvider = context.read<CurrencyProvider>();
     final currentCurrency = currencyProvider.currencyCode;
@@ -81,7 +84,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _isLoading = false;
     });
 
-    //load category limis
+    // trigger for default value of notification
+    if(!_hasAppliedDefaults){
+      _hasAppliedDefaults = true;
+      if(_pushNotifications){
+        if(_monthlySummary){
+          await NotificationService().scheduleMonthlySummary();
+        }
+        if(_transactionReminders){
+          await NotificationService().scheduleDailyReminder(_reminderTime.hour, _reminderTime.minute);
+        }
+      }
+
+
+    }
+
+    //load category limit
     if (!mounted) return;
 
     final categories = context.read<CategoryProvider>().categories;
@@ -224,7 +242,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _showCategoryLimitDialog(Category category) async {
     final existing = _categoryLimits[category.id];
     final ctrl = TextEditingController(
-      text: existing?.toStringAsFixed(0) ?? '',
+      text: existing?.toStringAsFixed(2) ?? '',
     );
 
     await showDialog(
@@ -470,7 +488,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               trailing: TextButton(
                 onPressed: _showTotalLimitDialog,
                 child: Text(
-                  '$_budgetCurrencyCode ${_totalBudgetLimit.toStringAsFixed(0)}',
+                  '$_budgetCurrencyCode ${_totalBudgetLimit.toStringAsFixed(2)}',
                 ),
               ),
             ),
@@ -491,7 +509,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   onPressed: () => _showCategoryLimitDialog(category),
                   child: Text(
                     _categoryLimits.containsKey(category.id)
-                        ? '$_budgetCurrencyCode ${_categoryLimits[category.id]!.toStringAsFixed(0)}'
+                        ? '$_budgetCurrencyCode ${_categoryLimits[category.id]!.toStringAsFixed(2)}'
                         : 'Set limit',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,

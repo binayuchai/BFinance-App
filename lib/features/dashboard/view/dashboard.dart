@@ -6,8 +6,24 @@ import 'package:bfinance/widgets/transaction/transaction_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class DashboardWidget extends StatelessWidget {
+class DashboardWidget extends StatefulWidget {
   const DashboardWidget({super.key});
+
+  @override
+  State<DashboardWidget> createState() => _DashboardWidgetState();
+}
+
+class _DashboardWidgetState extends State<DashboardWidget> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currencyProvider = context.read<CurrencyProvider>();
+      context.read<TransactionProvider>().ensureLoaded(
+        currencyProvider: currencyProvider,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

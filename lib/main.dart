@@ -11,17 +11,28 @@ import 'package:provider/provider.dart';
 import 'package:bfinance/providers/category_provider.dart';
 import 'package:bfinance/providers/currency_provider.dart';
 import 'package:bfinance/providers/theme_provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  /// Initialize Flutter bindings before async operations
-  /// Required when using await before runApp()
-  WidgetsFlutterBinding.ensureInitialized();
+  /// Initialize and Configure Sentry to track errors and crashes
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = 'https://9288d8be4ff4d20c8029ff49ecce56bc@o4512100552081408.ingest.us.sentry.io/4512100553850880';
+      options.tracesSampleRate = 1.0;
+    },
+    appRunner: () {
+      /// Initialize Flutter bindings before async operations
+      WidgetsFlutterBinding.ensureInitialized();
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+        Sentry.captureException(details.exception, stackTrace: details.stack);
+      };
+      //  the UI renders immediately, no matter what.
+      runApp(const MyApp());
+    },
+  );
 
-  /// Initialize notification service with timezone, permissions, etc.
 
-  await NotificationService().initialize();
-
-  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -33,6 +44,24 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final _routeObserver = RouteTrackingObserver();
+
+  @override
+  void initState() {
+    super.initState();
+    // Non-critical startup work happens AFTER the first frame is drawn,
+    // so a hang or failure here can never block the UI from appearing.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initBackgroundServices();
+    });
+  }
+
+  Future<void> _initBackgroundServices() async{
+    await NotificationService().initialize();
+    debugPrint('NotificationService init attempted');
+
+
+  }
+  
 
   @override
   Widget build(BuildContext context) {

@@ -232,6 +232,9 @@ class TransactionProvider extends ChangeNotifier {
       } catch (e) {
         debugPrint("Error loading cached transactions: $e");
       }
+    }else{
+      _isLoaded = true; // no cache data
+      notifyListeners();
     }
   }
 

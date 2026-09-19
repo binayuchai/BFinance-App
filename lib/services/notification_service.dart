@@ -1,9 +1,9 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
@@ -15,35 +15,63 @@ class NotificationService {
   static const int _monthlySummaryId = 3;
 
   Future<void> initialize() async {
-    //initialize timezone
-    tz.initializeTimeZones();
+    try {
+      //initialize timezone
+      tz.initializeTimeZones();
 
-    // read local timezone from device and set it
-    final TimezoneInfo currentTimeZone =
-        await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(currentTimeZone.identifier));
+// read local timezone from device and set it
+      try {
+        final TimezoneInfo currentTimeZone = await FlutterTimezone
+            .getLocalTimezone()
+            .timeout(const Duration(seconds: 5));
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/launcher_icon', // app icon for notification
-    );
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    const settings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
+        //log the raw value to sentry
+        Sentry.addBreadcrumb(
+          Breadcrumb(
+            message: 'Raw device timezone: "${currentTimeZone.identifier}"',
+            category: 'notification_init',
+          )
+        );
+        tz.setLocalLocation(tz.getLocation(currentTimeZone.identifier));
 
-    await _plugin.initialize(settings: settings);
+      } catch (e,st) {
+        await Sentry.captureException(
+          e,stackTrace: st,
+          hint: Hint.withMap({'stage':'timezone_setup'}),
+        );
+        tz.setLocalLocation(tz.getLocation('UTC'));
+      }
 
-    //request permission on Android 13+
-    await _plugin
-        .resolvePlatformSpecificImplementation<
+
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/launcher_icon', // app icon for notification
+      );
+      const iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      const settings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
+
+      await _plugin.initialize(settings: settings).timeout(const Duration(seconds: 8));
+
+      //request permission on Android 13+
+      await _plugin
+          .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
+      >()
+          ?.requestNotificationsPermission().timeout(const Duration(seconds: 15));
+    } catch (e, st) {
+      await Sentry.captureException(
+        e,stackTrace: st,
+        hint: Hint.withMap({'stage':'notification_service_initialize'}),
+      );
+      // swallow the error — app must keep running even if this fails
+
+    }
   }
 
   //schedule daily transaction reminder
@@ -106,7 +134,7 @@ class NotificationService {
       id: _budgetAlertId,
       title: title,
       body:
-          'Spent $currencyCode ${amount.toStringAsFixed(0)} of  $currencyCode ${limitAmount.toStringAsFixed(0)} limit',
+          'Spent $currencyCode ${amount.toStringAsFixed(2)} of  $currencyCode ${limitAmount.toStringAsFixed(0)} limit',
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'budget_alerts', // channel id

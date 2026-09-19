@@ -47,11 +47,22 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
     _noteController = TextEditingController(text: widget.transactions.note);
 
     //pre-select exisiting category
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
       context.read<CategoryProvider>().setSelectedCategoryId(
         widget.transactions.categoryId,
       );
-      context.read<CategoryProvider>().ensureLoaded(); //
+      context.read<CategoryProvider>().ensureLoaded();
+
+      //convert the stored amount into currently selected currency
+      final currencyProvider = context.read<CurrencyProvider>();
+      if (widget.transactions.currencyCode != currencyProvider.currencyCode) {
+        final converted = await currencyProvider.convertAmount(
+            widget.transactions.amount, widget.transactions.currencyCode);
+        if(!mounted) return;
+        setState(() {
+          _amountController.text = converted.toStringAsFixed(2);
+        });
+      }
     });
   }
 
