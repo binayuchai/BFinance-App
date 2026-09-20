@@ -22,7 +22,7 @@ class _TransactionListState extends State<TransactionList> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       //load from cache if available, otherwise fetch from API
       final transactionProvider = context.read<TransactionProvider>();
-      if (transactionProvider.transactions.isEmpty) {
+      if (!transactionProvider.isLoaded && transactionProvider.transactions.isEmpty) {
         final currencyProvider = context.read<CurrencyProvider>();
         transactionProvider.ensureLoaded(currencyProvider: currencyProvider);
       }

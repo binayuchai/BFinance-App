@@ -17,16 +17,32 @@ class _DashboardWidgetState extends State<DashboardWidget> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
+      if (!mounted) return;
+
       final currencyProvider = context.read<CurrencyProvider>();
-      context.read<TransactionProvider>().ensureLoaded(
-        currencyProvider: currencyProvider,
-      );
+      final transactionProvider = context.read<TransactionProvider>();
+      print('Transaction during dashboard, ${transactionProvider.transactions}');
+
+      if(!transactionProvider.isLoaded && transactionProvider.transactions.isEmpty){
+        //first time ever - no cache
+        await transactionProvider.ensureLoaded(
+          currencyProvider: currencyProvider,
+        );
+
+      }
+      else{
+        // Already loaded (likely from main.dart's cache-only load at startup
+        await transactionProvider.convertAllAmount(currencyProvider);
+      }
+
+
     });
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(title: const Text('BFinance Tracker')),
       body: Column(

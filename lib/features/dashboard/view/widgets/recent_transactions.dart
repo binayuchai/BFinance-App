@@ -18,6 +18,7 @@ class RecentTransactions extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final recent = provider.transactions.take(limit).toList();
 
+
     return Column(
       children: [
         Padding(
@@ -50,7 +51,16 @@ class RecentTransactions extends StatelessWidget {
           ),
         ),
 
-        if (recent.isEmpty)
+        if(provider.isLoading)
+          Padding(
+            padding:EdgeInsets.all(24.0),
+            child: Text(
+              "Loading transactions..",
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
+          )
+
+        else if (recent.isEmpty)
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(

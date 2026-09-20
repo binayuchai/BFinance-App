@@ -26,8 +26,7 @@ class _BottomNavState extends State<BottomNav> {
     const DashboardWidget(),
     const TransactionPage(),
 
-    const Analytics(), // Placeholder for Analytics
-
+    const Analytics(),
     const Category(),
     const Settings(),
   ];
@@ -115,7 +114,7 @@ class _BottomNavState extends State<BottomNav> {
               context: context,
               builder: (context) => Padding(
                 padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 70, // keyboard aware
                 ),
                 child: AddTransactionForm(),
               ),

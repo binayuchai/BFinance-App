@@ -34,11 +34,13 @@ class _CategoryExpensesState extends State<CategoryExpenses> {
 
       itemBuilder: (context, index) {
         final tx = expenseTransactions[index];
+        final displayAmount = transactionProvider.getConvertedAmount(tx.id!);
+
         return ListTile(
           leading: tx.icon,
           title: Text(tx.title, style: TextStyle(fontWeight: FontWeight.w500)),
           subtitle: Text(
-            AmountFormatter.formatAmountSync(tx.amount, currencyCode),
+            AmountFormatter.formatAmountSync(displayAmount, currencyCode),
             style: TextStyle(color: Colors.red),
           ),
           trailing: Column(

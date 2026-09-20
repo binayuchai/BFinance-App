@@ -212,6 +212,7 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> loadCachedTransactions({
     CurrencyProvider? currencyProvider,
   }) async {
+    print('LoadCached transaction is being process.....');
     final prefs = await SharedPreferences.getInstance();
     final cachedData = prefs.getString('cached_transactions');
     print("Loading cached transactions: $cachedData");
@@ -233,7 +234,6 @@ class TransactionProvider extends ChangeNotifier {
         debugPrint("Error loading cached transactions: $e");
       }
     }else{
-      _isLoaded = true; // no cache data
       notifyListeners();
     }
   }

@@ -1,33 +1,18 @@
 import 'package:bfinance/features/analytics/widgets/weekly_chart.dart';
-import 'package:bfinance/features/transaction/models/transaction.dart';
 import 'package:bfinance/providers/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'widgets/pie_chart.dart';
 import 'widgets/monthly_chart.dart';
 import 'package:bfinance/providers/currency_provider.dart';
-
-class Analytics extends StatelessWidget {
+class Analytics extends StatefulWidget {
   const Analytics({super.key});
+  @override
+  State<Analytics> createState() => _AnalyticsState();
+}
 
-  // // helper function to format currency values based on the selected currency code
-  // Future<List<double>> _convertExpenses(
-  //   List<double> expenses,
-  //   List<Transaction> transactions,
-  //   CurrencyProvider currencyProvider,
-  // ) async {
-  //   List<double> convertedExpenses = [];
-
-  //   for (var transaction in transactions) {
-  //     double convertedValue = await currencyProvider.convertAmount(
-  //       transaction.amount,
-  //       transaction.currencyCode,
-  //     );
-  //     convertedExpenses.add(convertedValue);
-  //   }
-
-  //   return convertedExpenses;
-  // }
+class _AnalyticsState extends State<Analytics> {
+  String? _lastConvertedCurrency;
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +62,16 @@ class Analytics extends StatelessWidget {
     }
 
     // recalculate conversions when currency changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TransactionProvider>().convertAllAmount(currencyProvider);
-    });
+    if(_lastConvertedCurrency != currencyCode){
+      _lastConvertedCurrency = currencyCode;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        context.read<TransactionProvider>().convertAllAmount(currencyProvider);
+      });
+
+    }
+
 
     return DefaultTabController(
       length: 2,
@@ -137,11 +129,13 @@ class Analytics extends StatelessWidget {
                       labels: months,
                       currencyCode: currencyCode,
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ), // bottom breathing room after last section
+                   // bottom breathing room after last section
                   ],
+
                 ),
+              ),
+              const SizedBox(
+                height: 20,
               ),
             ],
           ),

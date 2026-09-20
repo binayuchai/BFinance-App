@@ -222,7 +222,7 @@ class _EditTransactionFormState extends State<EditTransactionForm> {
         left: 16,
         right: 16,
         top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16, // keyboard aware
+        bottom: MediaQuery.of(context).viewInsets.bottom + 70, // keyboard aware
       ),
       child: SingleChildScrollView(
         child: Form(

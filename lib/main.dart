@@ -80,7 +80,7 @@ class _MyAppState extends State<MyApp> {
           create: (_) => CategoryProvider()..initialize(),
         ), //  Holds & exposes category state; rebuilds UI on changes
         ChangeNotifierProvider(
-          create: (_) => TransactionProvider()..loadCachedTransactions(),
+          create: (_) => TransactionProvider(),
         ), //  Holds & exposes transaction state; rebuilds UI on changes
         ChangeNotifierProvider(
           create: (_) => CurrencyProvider()..initialize(),

@@ -17,6 +17,8 @@ class _CategoryIncomeState extends State<CategoryIncome> {
   @override
   Widget build(BuildContext context) {
     final transactionProvider = context.watch<TransactionProvider>();
+    final currencyProvider = context.watch<CurrencyProvider>();
+
     final currencyCode = context.watch<CurrencyProvider>().currencyCode;
 
     if (transactionProvider.isLoading) {
@@ -34,11 +36,15 @@ class _CategoryIncomeState extends State<CategoryIncome> {
       itemCount: incomeTransactions.length,
       itemBuilder: (context, index) {
         final tx = incomeTransactions[index];
+
+        //convert amount if currency code is changed
+        double displayAmount = transactionProvider.getConvertedAmount(tx.id!);
+
         return ListTile(
           leading: tx.icon,
           title: Text(tx.title, style: TextStyle(fontWeight: FontWeight.w500)),
           subtitle: Text(
-            AmountFormatter.formatAmountSync(tx.amount, currencyCode),
+            AmountFormatter.formatAmountSync(displayAmount, currencyCode),
             style: TextStyle(color: Colors.green),
           ),
           trailing: Column(
