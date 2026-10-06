@@ -65,25 +65,21 @@ PostgreSQL
 
 ## Screenshots
 
-Add screenshots of the main screens here.
+<h3>Dashboard</h3>
 
-### Dashboard
+<img src="assets/screenshots/dashboard.png" alt="Dashboard" width="250">
 
-![Dashboard](assets/screenshots/dashboard.png)
+<h3>Analytics</h3>
 
+<img src="assets/screenshots/analytics.png" alt="Analytics" width="250">
 
-### Analytics
+<h3>Budget</h3>
 
-![Analytics](assets/screenshots/analytics.png)
+<img src="assets/screenshots/budget_limit.png" alt="Budget" width="250">
 
+<h3>Change Currency</h3>
 
-### Budget
-
-![Budget](assets/screenshots/budget_limit.png)
-
-### Change Currency
-
-![Change Currency](assets/screenshots/currency.png)
+<img src="assets/screenshots/currency.png" alt="Change Currency" width="250">
 
 ## Project Purpose
 
