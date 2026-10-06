@@ -69,21 +69,21 @@ Add screenshots of the main screens here.
 
 ### Dashboard
 
-![Dashboard](BFinance-App/assets/screenshots/dashboard.png)
+![Dashboard](assets/screenshots/dashboard.png)
 
 
 ### Analytics
 
-![Analytics](BFinance-App/assets/screenshots/analytics.png)
+![Analytics](assets/screenshots/analytics.png)
 
 
 ### Budget
 
-![Budget](BFinance-App/assets/screenshots/budget_limit.png)
+![Budget](assets/screenshots/budget_limit.png)
 
 ### Change Currency
 
-![Change Currency](BFinance-App/assets/screenshots/currency.png)
+![Change Currency](assets/screenshots/currency.png)
 
 ## Project Purpose
 
