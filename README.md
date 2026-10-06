@@ -39,29 +39,14 @@ The application helps users manage their income and expenses, organize transacti
 - PostgreSQL
 - JWT Authentication
 
-### Other
+### Deployment & Tools
 
-- REST API
-- Git / GitHub
+- Render — Backend deployment
+- Supabase — PostgreSQL database hosting
+- Git / Github
 - Sentry
 - Docker
 
-> Remove any technology above that is not actually used in this project.
-
-## Architecture
-
-The application uses a Flutter frontend communicating with a Django REST API backend.
-
-```text
-Flutter Mobile App
-        |
-        | REST API
-        v
-Django REST Framework
-        |
-        v
-PostgreSQL
-```
 
 ## Screenshots
 
@@ -81,24 +66,26 @@ PostgreSQL
 
 <img src="assets/screenshots/currency.png" alt="Change Currency" width="250">
 
-## Project Purpose
 
-This project was developed to gain practical experience in mobile and backend application development, including API integration, authentication, database design, state management, and application deployment.
+## Architecture & Deployment
 
-## What I Learned
+The application uses the following deployment setup:
 
-Through this project, I gained practical experience with:
+```text
+Flutter Mobile App
+        |
+        | HTTPS / REST API
+        v
+    Render
+(Django REST Framework)
+        |
+        v
+Supabase
+(PostgreSQL)
+```
+Django Backend -> Render
 
-- Flutter application development
-- REST API integration
-- Authentication and authorization
-- Database modeling
-- State management with Provider
-- Secure token management
-- API error handling
-- Local notifications
-- Working with Git and GitHub
-- Connecting a mobile application with a backend service
+The Django REST API is deployed on Render, while the PostgreSQL database is hosted on Supabase.
 
 ## Project Structure
 
@@ -110,8 +97,7 @@ bfinance/
 
 ## Status
 
-The application is currently under development and Closed testing.
-
+The application is currently under development and is available for Closed Testing through Google Play.
 ## Author
 
 **Arjun Uchai Thakuri**
