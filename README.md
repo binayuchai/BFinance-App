@@ -73,7 +73,7 @@ PostgreSQL
 
 <img src="assets/screenshots/analytics.png" alt="Analytics" width="250">
 
-<h3>Budget</h3>
+<h3>Budget Limit</h3>
 
 <img src="assets/screenshots/budget_limit.png" alt="Budget" width="250">
 
@@ -110,10 +110,10 @@ bfinance/
 
 ## Status
 
-The application is currently under development and testing.
+The application is currently under development and Closed testing.
 
 ## Author
 
-**Your Name**
+**Arjun Uchai Thakuri**
 
-- GitHub: [Your GitHub Profile](YOUR_GITHUB_URL)
+- GitHub: [GitHub Profile](https://github.com/binayuchai)
