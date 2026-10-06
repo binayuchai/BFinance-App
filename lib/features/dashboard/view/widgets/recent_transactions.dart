@@ -51,7 +51,7 @@ class RecentTransactions extends StatelessWidget {
           ),
         ),
 
-        if(provider.isLoading)
+        if(provider.isLoading || !provider.isLoaded)
           Padding(
             padding:EdgeInsets.all(24.0),
             child: Text(

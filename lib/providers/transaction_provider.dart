@@ -21,6 +21,7 @@ class TransactionProvider extends ChangeNotifier {
       false; // Flag to indicate if any conversion used stale rates
   bool get ratesAreStale =>
       _ratesAreStale; // Public getter for the stale rates flag
+  bool _isEnsuring = false;
 
   List<Transaction> get getTransaction => transactions;
   bool get isLoading => _isLoading;
@@ -51,13 +52,13 @@ class TransactionProvider extends ChangeNotifier {
 
   Future<void> fetchTransactions({
     required CurrencyProvider currencyProvider,
-    bool forceRefresh = false,
+    // bool forceRefresh = false,
   }) async {
     // forceRefresh bypasses the "already loaded" guard so ensureLoaded can
     // trigger a real background refresh even after the first load.
-    if (!forceRefresh && (_isLoaded || _isLoading)) {
-      return; // Prevent redundant fetches
-    }
+    // if (!forceRefresh && (_isLoaded || _isLoading)) {
+    //   return; // Prevent redundant fetches
+    // }
     if (_isLoading) return; // still avoid overlapping fetches even when forcing
 
     final token = await ApiService().getAccessToken();
@@ -104,9 +105,9 @@ class TransactionProvider extends ChangeNotifier {
       // Only needed on cold-start/direct calls where cache hasn't been
       // loaded yet. ensureLoaded already loads cache before calling this
       // with forceRefresh: true, so avoid a redundant double-load there.
-      if (!forceRefresh) {
+      // if (!forceRefresh) {
         await loadCachedTransactions(currencyProvider: currencyProvider);
-      }
+
       _error = "Showing old transactions";
     } finally {
       _isLoading = false;
@@ -248,15 +249,29 @@ class TransactionProvider extends ChangeNotifier {
 
     //if cache is still empty, fetch from API when we have internet connection
 
-    final token = await ApiService().getAccessToken();
-    if (token != null) {
-      await fetchTransactions(
-        currencyProvider: currencyProvider,
-        forceRefresh: true,
-      );
+    //check if already ensureLoaded is called
+    if (_isEnsuring) return;
+    _isEnsuring = true;
+    try {
+      final token = await ApiService().getAccessToken();
+      if (token != null) {
+        await fetchTransactions(
+          currencyProvider: currencyProvider,
+          // forceRefresh: true,
+        );
+      }
+      if (transactions.isEmpty) {
+        await loadCachedTransactions(currencyProvider: currencyProvider);
+      }
     }
-    if (transactions.isEmpty) {
-      await loadCachedTransactions(currencyProvider: currencyProvider);
+    catch(e){
+      debugPrint("Unexpected error in ensureLoaded: $e");
+      _error = "Something went wrong loading transactions";
+      _isLoaded = true; // stop the UI from spinning on "Loading.." forever
+      notifyListeners();
+    }
+    finally{
+      _isEnsuring = false;
     }
   }
 

@@ -12,12 +12,14 @@ import 'package:bfinance/providers/category_provider.dart';
 import 'package:bfinance/providers/currency_provider.dart';
 import 'package:bfinance/providers/theme_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   /// Initialize and Configure Sentry to track errors and crashes
   await SentryFlutter.init(
     (options) {
-      options.dsn = 'https://9288d8be4ff4d20c8029ff49ecce56bc@o4512100552081408.ingest.us.sentry.io/4512100553850880';
+      options.dsn =
+          'https://9288d8be4ff4d20c8029ff49ecce56bc@o4512100552081408.ingest.us.sentry.io/4512100553850880';
       options.tracesSampleRate = 1.0;
     },
     appRunner: () {
@@ -31,8 +33,6 @@ void main() async {
       runApp(const MyApp());
     },
   );
-
-
 }
 
 class MyApp extends StatefulWidget {
@@ -55,13 +55,10 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<void> _initBackgroundServices() async{
+  Future<void> _initBackgroundServices() async {
     await NotificationService().initialize();
     debugPrint('NotificationService init attempted');
-
-
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -108,28 +105,54 @@ class _MyAppState extends State<MyApp> {
             themeMode:
                 themeProvider.themeMode, // Use the theme mode from the provider
             builder: (context, child) {
-              return ValueListenableBuilder<String?>(
-                valueListenable: _routeObserver.currentRoute,
-                builder: (context, route, _) {
-                  final hideOnThisRoute =
-                      route == null ||
-                      AppRoutes.hideIndicatorOnRoutes.contains(route);
-                  return Consumer<ConnectivityProvider>(
-                    builder: (context, connectivity, _) {
-                      final showBanner =
-                          !hideOnThisRoute && connectivity.isOffline;
-                      return Column(
-                        children: [
-                          SafeArea(
-                            bottom: false,
-                            child: OfflineIndicator(isOnline: !showBanner),
-                          ),
-                          Expanded(child: child ?? const SizedBox.shrink()),
-                        ],
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: isDark
+                      ? Brightness.light
+                      : Brightness.dark,
+                  statusBarBrightness: isDark
+                      ? Brightness.dark
+                      : Brightness.light,
+                  systemNavigationBarColor: Theme.of(
+                    context,
+                  ).colorScheme.surface,
+
+                  systemNavigationBarIconBrightness: isDark
+                      ? Brightness.light
+                      : Brightness.dark,
+                ),
+
+                child: ColoredBox(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: ValueListenableBuilder<String?>(
+                    valueListenable: _routeObserver.currentRoute,
+                    builder: (context, route, _) {
+                      final hideOnThisRoute =
+                          route == null ||
+                          AppRoutes.hideIndicatorOnRoutes.contains(route);
+                      return Consumer<ConnectivityProvider>(
+                        builder: (context, connectivity, _) {
+                          final showBanner =
+                              !hideOnThisRoute && connectivity.isOffline;
+                          return Column(
+                            children: [
+                              if (showBanner)
+                                SafeArea(
+                                  bottom: false,
+                                  child: OfflineIndicator(
+                                    isOnline: !showBanner,
+                                  ),
+                                ),
+                              Expanded(child: child ?? const SizedBox.shrink()),
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
-                },
+                  ),
+                ),
               );
             },
           );

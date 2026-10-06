@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as context;
 
 class ConnectivityProvider extends ChangeNotifier {
   final Connectivity _connectivity =
@@ -51,6 +52,7 @@ class ConnectivityProvider extends ChangeNotifier {
       notifyListeners(); // Notify listeners about the change
     }
   }
+
 
   @override
   void dispose() {

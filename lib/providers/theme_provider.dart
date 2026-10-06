@@ -1,5 +1,6 @@
 //
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider extends ChangeNotifier {
@@ -24,13 +25,13 @@ class ThemeProvider extends ChangeNotifier {
 
     //load theme mode
     final savedMode = prefs.getString(_themeModeKey);
-    if (savedMode == "light")
+    if (savedMode == "light") {
       _themeMode = ThemeMode.light;
-    else if (savedMode == "dark")
+    } else if (savedMode == "dark") {
       _themeMode = ThemeMode.dark;
-    else
+    } else {
       _themeMode = ThemeMode.system;
-
+    }
     //load accent color
     final savedColor = prefs.getInt(_colorKey);
     if (savedColor != null) _accentColor = Color(savedColor);
@@ -90,7 +91,8 @@ class ThemeProvider extends ChangeNotifier {
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,
         elevation: 0, // No elevation by default
-        scrolledUnderElevation: 0, // Shadow when scrolled under
+        scrolledUnderElevation: 0, // No shadow when scrolled under
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
     );
   }
@@ -111,7 +113,8 @@ class ThemeProvider extends ChangeNotifier {
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface, // SAME as scaffold
         elevation: 0, // No elevation by default
-        scrolledUnderElevation: 0, // Shadow only when scrolled
+        scrolledUnderElevation: 0, // No shadow when scrolled under
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
     );
   }
