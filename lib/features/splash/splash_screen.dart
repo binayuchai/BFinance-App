@@ -31,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       //after valid token logged in - check biometric to access dashboard
       final prefs = await SharedPreferences.getInstance();
+      if(!mounted) return; // check if current screen exist or not
       final biometricEnabled = prefs.getBool('biometric_lock') ?? false;
 
       if (biometricEnabled) {
@@ -46,19 +47,24 @@ class _SplashScreenState extends State<SplashScreen> {
             // user cancelled - show login
             Navigator.pushReplacementNamed(context, '/login');
           }
-        } on PlatformException {
+        }on LocalAuthException catch(e){
+          if(!mounted) return;
+          debugPrint('Biometric failed: ${e.code}');
+          Navigator.pushReplacementNamed(context, '/login');
+
+        }
+        on PlatformException catch(e){
           if (!mounted) return;
+          debugPrint('Biometric failed: ${e.code}');
           Navigator.pushReplacementNamed(context, '/login');
         }
       } else {
         // go straight to app
-
-        print("Navigating to dashboard");
         Navigator.pushReplacementNamed(context, '/dashboard');
       }
     } else {
       if (!mounted) return;
-      print("No token found, navigating to login");
+      debugPrint("No token found, navigating to login");
       Navigator.pushReplacementNamed(context, '/login');
     }
   }

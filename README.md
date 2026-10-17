@@ -87,6 +87,7 @@ Django Backend -> Render
 
 The Django REST API is deployed on Render, while the PostgreSQL database is hosted on Supabase.
 
+
 ## Project Structure
 
 ```text
@@ -98,6 +99,7 @@ bfinance/
 ## Status
 
 The application is currently under development and is available for Closed Testing through Google Play.
+
 ## Author
 
 **Arjun Uchai Thakuri**
